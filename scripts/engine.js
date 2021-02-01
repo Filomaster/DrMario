@@ -3,14 +3,6 @@
 // This object handle all 'technical side' of the game
 // (basically anything that is not related to game data)
 let Engine = {
-  // Useful
-  Utility: {
-    getRandomInt: (min, max) => {
-      min = Math.ceil(min);
-      max = Math.floor(max);
-      return Math.floor(Math.random() * (max - min + 1)) + min;
-    },
-  },
   // All objects and methods related to player input
   Input: {
     //  All key bindings used in game. It can be configured for better experience
@@ -27,12 +19,14 @@ let Engine = {
     // This method handle all one-time inputs in the game
     GetKey: (
       e, // passed event
+      player_one,
       cb_l, // callback for left key
       cb_r, // callback for right key
       cb_rl, // callback for rotate left
       cb_rr, // callback for rotate right
       cb_shift, // callback for shifting pill down
       // Alternative callback used in multiplayer. They are equals to normal callbacks for default
+      player_two = player_one, // alternative callback for
       cb_al = cb_l, // alternative callback for left key
       cb_ar = cb_r, // alternative callback for right key
       cb_arl = cb_rl, // alternative callback for rotate left
@@ -41,22 +35,22 @@ let Engine = {
     ) => {
       switch (e.key.toLowerCase()) {
         case Engine.Input.Binding.left[0]:
-          cb_l();
+          cb_l(player_one, -1);
           break;
         case Engine.Input.Binding.left[1]:
-          cb_al();
+          cb_al(player_two, -1);
           break;
         case Engine.Input.Binding.right[0]:
-          cb_r();
+          cb_r(player_one, 1);
           break;
         case Engine.Input.Binding.right[1]:
-          cb_ar();
+          cb_ar(player_two, 1);
           break;
         case Engine.Input.Binding.rotate_left[0]:
-          cb_rl();
+          cb_rl(player_one, -90);
           break;
         case Engine.Input.Binding.rotate_left[1]:
-          cb_arl();
+          cb_arl(player_two, -90);
           break;
         case Engine.Input.Binding.rotate_right[0]:
           cb_rr();
@@ -77,10 +71,20 @@ let Engine = {
       }
     },
   },
+  // TODO
+  Graphic: {
+    StartMenu: null,
+    GameMenu: null,
+    OnePlayerSettings: null,
+    TwoPlayerSettings: null,
+    OnePlayerScreen: null,
+    TwoPlayersScreen: null,
+  },
   // Filling up div on the page with empty divs
   InitBoard: (board, parent) => {
     board.forEach((element, i) => {
       let field = document.createElement("div");
+      // if (DEBUG) field.style.border = "1px solid white";
       field.dataset.id = i;
       parent.append(field);
     });
@@ -106,3 +110,12 @@ let Engine = {
     }
   },
 };
+
+// // TODO: for now it's just quick prototype of window class, which will be used in the menu system
+// class Window{
+//   constructor();
+// }
+// // TODO: for now it's just prototype of screen class, which will be used while creating screens in the game'
+// class Screen{
+//   constructor();
+// }

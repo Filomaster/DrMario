@@ -9,7 +9,7 @@ body {
   width: 134vh;
   height: 100vh;
   margin: auto;
-  background-image: linear-gradient(45deg, #7C2F27 25%, transparent 26%), linear-gradient(-45deg, #7C2F27 25%, transparent 26%), linear-gradient(45deg, transparent 74%, #7C2F27 75%), linear-gradient(-45deg, transparent 74%, #7C2F27 75%);
+  background-image: linear-gradient(45deg, #901829 25%, transparent 26%), linear-gradient(-45deg, #901829 25%, transparent 26%), linear-gradient(45deg, transparent 74%, #901829 75%), linear-gradient(-45deg, transparent 74%, #901829 75%);
   background-size: 10vh 10vh;
   background-position: 0 0, 0 5vh, 5vh -5vh, -5vh 0;
 }
@@ -30,14 +30,14 @@ body {
 }
 
 .blue_pill {
-  background-color: #78A0DB;
+  background-color: #78a0db;
 }
 
 .yellow_pill {
-  background-color: #F4E377;
+  background-color: #f4e377;
 }
 
 .red_pill {
-  background-color: #9E454C;
+  background-color: #9e454c;
 }
 /*# sourceMappingURL=style.css.map */
