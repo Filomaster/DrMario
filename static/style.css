@@ -1,0 +1,43 @@
+body {
+  color: #fff;
+  background-color: #000;
+  margin: 0;
+  padding: 0;
+}
+
+.background {
+  width: 134vh;
+  height: 100vh;
+  margin: auto;
+  background-image: linear-gradient(45deg, #7C2F27 25%, transparent 26%), linear-gradient(-45deg, #7C2F27 25%, transparent 26%), linear-gradient(45deg, transparent 74%, #7C2F27 75%), linear-gradient(-45deg, transparent 74%, #7C2F27 75%);
+  background-size: 10vh 10vh;
+  background-position: 0 0, 0 5vh, 5vh -5vh, -5vh 0;
+}
+
+.grid-container {
+  position: absolute;
+  margin-left: 47vh;
+  margin-top: 10vh;
+  display: -ms-grid;
+  display: grid;
+  background-color: #000;
+  width: 40vh;
+  border: 10px solid #feffae;
+  -ms-grid-columns: 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh;
+      grid-template-columns: 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh;
+  -ms-grid-rows: 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh;
+      grid-template-rows: 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh;
+}
+
+.blue_pill {
+  background-color: #78A0DB;
+}
+
+.yellow_pill {
+  background-color: #F4E377;
+}
+
+.red_pill {
+  background-color: #9E454C;
+}
+/*# sourceMappingURL=style.css.map */

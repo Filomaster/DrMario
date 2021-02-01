@@ -1,0 +1,45 @@
+$gs: 5vh;
+$board-width: 8*$gs;
+$screen-width: 134vh;
+$bcg:  #7C2F27;//#308512; 
+
+body {
+    color: #fff;
+    background-color: #000;
+    margin: 0;
+    padding: 0;
+}
+
+.background {
+    // background-color: #7C2F27;
+    width: 134vh;
+    height: 100vh;
+    margin: auto;
+
+    background-image: 
+        linear-gradient(45deg, $bcg 25%, transparent 26%),
+        linear-gradient(-45deg, $bcg 25%, transparent 26%),
+        linear-gradient(45deg, transparent 74%, $bcg 75%),
+        linear-gradient(-45deg, transparent 74%, $bcg 75%);
+    background-size: $gs*2 $gs*2;
+    background-position: 0 0, 0 $gs, ($gs) (-$gs), (-$gs) 0;
+}
+
+.grid-container {
+    position: absolute;
+    margin-left: $screen-width/2 - $board-width/2;
+    margin-top: 10vh;
+    display: grid;
+    background-color: #000;
+    width: $board-width;
+    border: 10px solid rgb(254, 255, 174);
+
+    grid-template-columns: $gs $gs $gs $gs $gs $gs $gs $gs;
+    grid-template-rows: $gs $gs $gs $gs $gs $gs $gs $gs $gs $gs $gs $gs $gs $gs $gs $gs;
+}
+
+
+// field states
+.blue_pill { background-color: #78A0DB}
+.yellow_pill { background-color: #F4E377}
+.red_pill { background-color: #9E454C}
