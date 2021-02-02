@@ -45,6 +45,12 @@ class Player {
     // > interval
     this.getInterval = () => _interval;
     this.setInterval = (interval) => (_interval = interval);
+    // > orientation
+    this.getOrientation = function () {
+      return this.pill.rotation == 0 || this.pill.rotation == 180
+        ? "horizontal"
+        : "vertical";
+    };
 
     // Functions called in constructor
     this.generatePills(); // Generating pills after initializing array

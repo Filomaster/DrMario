@@ -65,38 +65,43 @@ let Game = {
 
     _player.board[_player.pill.l + direction] = _l;
     _player.board[_player.pill.r + direction] = _r;
-    console.log(_player.pill);
-    Utility.printBoard(_player.board);
-    if (direction == 1) _player.board[_player.pill.l] = Data.FieldStates.empty;
-    else _player.board[_player.pill.r] = Data.FieldStates.empty;
+
+    if (direction == 1 || _player.getOrientation() == "vertical")
+      _player.board[_player.pill.l] = Data.FieldStates.empty;
+    if (direction == -1 || _player.getOrientation() == "vertical")
+      _player.board[_player.pill.r] = Data.FieldStates.empty;
+
     _player.pill.l += direction;
     _player.pill.r += direction;
     Engine.Render(_player.board);
   },
+  // TODO: COMMENT THIS
   Rotate: (_player, rotation) => {
+    let _ro = _player.pill.rotation;
     if (_player.pill.rotation + rotation >= 360) _player.pill.rotation = 0;
     else if (_player.pill.rotation + rotation <= -90)
       _player.pill.rotation = 270;
     else _player.pill.rotation += rotation;
 
+    let _rn = _player.pill.rotation;
+    if (
+      (_ro == 0 && _rn == 270) ||
+      (_ro == 270 && _rn == 0) ||
+      (_ro == 90 && _rn == 180) ||
+      (_ro == 180 && _rn == 90)
+    ) {
+      let _r = _player.board[_player.pill.r];
+      _player.board[_player.pill.r] = _player.board[_player.pill.l];
+      _player.board[_player.pill.l] = _r;
+    }
     switch (_player.pill.rotation) {
       case 0:
+      case 180:
         _player.board[_player.pill.l + 1] = _player.board[_player.pill.r];
         _player.board[_player.pill.r] = Data.FieldStates.empty;
         _player.pill.r = _player.pill.l + 1;
         break;
       case 90:
-        _player.board[_player.pill.l - 8] = _player.board[_player.pill.r];
-        _player.board[_player.pill.r] = Data.FieldStates.empty;
-        _player.pill.r = _player.pill.l - 8;
-
-        break;
-      case 180:
-        _player.board[_player.pill.l + 1] = _player.board[_player.pill.r];
-        _player.board[_player.pill.r] = Data.FieldStates.empty;
-        _player.pill.r = _player.pill.l + 1;
-
-        break;
       case 270:
         _player.board[_player.pill.l - 8] = _player.board[_player.pill.r];
         _player.board[_player.pill.r] = Data.FieldStates.empty;
@@ -124,26 +129,21 @@ let Game = {
     Engine.Render(_player.board);
 
     let _interval = setInterval(() => {
-      // Variable to store current pill orientation for further computing, ignoring exact angle
-      let orientation =
-        _player.pill.rotation == 0 || _player.pill.rotation == 180
-          ? "horizontal"
-          : "vertical";
-
       // Checking if pill collide with something.
       if (
         !Game.CheckCollision(
           _player.board,
           _player.pill.l,
           _player.pill.r,
-          orientation
+          _player.getOrientation()
         )
       ) {
         // Shifting cells one row lower
         _player.board[_player.pill.l + 8] = _player.board[_player.pill.l];
         _player.board[_player.pill.r + 8] = _player.board[_player.pill.r];
         // Clearing cells after shifting
-        _player.board[_player.pill.l] = Data.FieldStates.empty;
+        if (_player.getOrientation() == "horizontal")
+          _player.board[_player.pill.l] = Data.FieldStates.empty;
         _player.board[_player.pill.r] = Data.FieldStates.empty;
 
         _player.pill.l += 8; //
