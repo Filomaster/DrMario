@@ -19,50 +19,42 @@ let Engine = {
     // This method handle all one-time inputs in the game
     GetKey: (
       e, // passed event
-      player_one,
-      cb_l, // callback for left key
-      cb_r, // callback for right key
-      cb_rl, // callback for rotate left
-      cb_rr, // callback for rotate right
+      cb_move, // callback for left key
+      cb_rotate, // callback for rotate left
       cb_shift, // callback for shifting pill down
-      // Alternative callback used in multiplayer. They are equals to normal callbacks for default
-      player_two = player_one, // alternative callback for
-      cb_al = cb_l, // alternative callback for left key
-      cb_ar = cb_r, // alternative callback for right key
-      cb_arl = cb_rl, // alternative callback for rotate left
-      cb_arr = cb_rr, // alternative callback for rotate right
-      cb_ashift = cb_shift // alternative callback for shifting pill down
+      player_one,
+      player_two = player_one // alternative callback for
     ) => {
       switch (e.key.toLowerCase()) {
         case Engine.Input.Binding.left[0]:
-          cb_l(player_one, -1);
+          cb_move(player_one, -1);
           break;
         case Engine.Input.Binding.left[1]:
-          cb_al(player_two, -1);
+          cb_move(player_two, -1);
           break;
         case Engine.Input.Binding.right[0]:
-          cb_r(player_one, 1);
+          cb_move(player_one, 1);
           break;
         case Engine.Input.Binding.right[1]:
-          cb_ar(player_two, 1);
+          cb_move(player_two, 1);
           break;
         case Engine.Input.Binding.rotate_left[0]:
-          cb_rl(player_one, -90);
+          cb_rotate(player_one, -90);
           break;
         case Engine.Input.Binding.rotate_left[1]:
-          cb_arl(player_two, -90);
+          cb_rotate(player_two, -90);
           break;
         case Engine.Input.Binding.rotate_right[0]:
-          cb_rr();
+          cb_rotate(player_one, 90);
           break;
         case Engine.Input.Binding.rotate_right[1]:
-          cb_arr();
+          cb_rotate(player_two, 90);
           break;
         case Engine.Input.Binding.shift_down[0]:
           cb_shift();
           break;
         case Engine.Input.Binding.shift_down[1]:
-          cb_ashift();
+          cb_shift();
           break;
         case Engine.Input.Binding.pause[0]:
         case Engine.Input.Binding.pause[1]:
