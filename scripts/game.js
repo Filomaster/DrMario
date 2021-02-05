@@ -16,7 +16,7 @@ let Game = {
   // Initializing boards for players. Player number is passed as an argument
   InitBoard: (playerCount) => {
     for (let i = 0; i < player.board.length; i++) {
-      player.board[i] = Data.FieldStates.empty;
+      player.board[i] = Data.Field.empty;
     }
     // TODO: Change later for multiplayer using Player class
     // if (playerCount == 2) {
@@ -44,18 +44,18 @@ let Game = {
     if (
       (direction == -1 &&
         (_player.pill.l == _player.pill.y * 8 ||
-          _player.board[_player.pill.l - 1] != Data.FieldStates.empty)) ||
+          _player.board[_player.pill.l - 1] != Data.Field.empty)) ||
       (_player.getOrientation() == "vertical" &&
-        _player.board[_player.pill.r - 1] != Data.FieldStates.empty)
+        _player.board[_player.pill.r - 1] != Data.Field.empty)
     )
       return;
     if (
       (direction == 1 &&
         (_player.pill.r ==
           (_player.pill.y - (_player.getOrientation() == "vertical")) * 8 + 7 ||
-          _player.board[_player.pill.r + 1] != Data.FieldStates.empty)) ||
+          _player.board[_player.pill.r + 1] != Data.Field.empty)) ||
       (_player.getOrientation() == "vertical" &&
-        _player.board[_player.pill.l + 1] != Data.FieldStates.empty)
+        _player.board[_player.pill.l + 1] != Data.Field.empty)
     )
       return;
 
@@ -67,9 +67,9 @@ let Game = {
     _player.board[_player.pill.r + direction] = _r;
 
     if (direction == 1 || _player.getOrientation() == "vertical")
-      _player.board[_player.pill.l] = Data.FieldStates.empty;
+      _player.board[_player.pill.l] = Data.Field.empty;
     if (direction == -1 || _player.getOrientation() == "vertical")
-      _player.board[_player.pill.r] = Data.FieldStates.empty;
+      _player.board[_player.pill.r] = Data.Field.empty;
 
     _player.pill.l += direction;
     _player.pill.r += direction;
@@ -101,12 +101,12 @@ let Game = {
     // TODO: block rotation if tile is blocked on top, on left, and make same for the left side
     if (
       (_player.pill.r == (_player.pill.y - 1) * 8 + 7 ||
-        _player.board[_player.pill.l + 2] != Data.FieldStates.empty) &&
+        _player.board[_player.pill.l + 1] != Data.Field.empty) &&
       _player.getOrientation() == "horizontal"
     )
-      Game.Move(_player, -1);
+      Game.Move(_player, -1); // BUG: If pill can't move back, well it doesn't. I should prevent rotation in that case
     // if (
-    //   _player.board[_player.pill.r - 8] != Data.FieldStates.empty &&
+    //   _player.board[_player.pill.r - 8] != Data.Field.empty &&
     //   _player.getOrientation() == "vertical"
     // )
     //   Game.Move(_player, 1);
@@ -114,13 +114,13 @@ let Game = {
       case 0:
       case 180:
         _player.board[_player.pill.l + 1] = _player.board[_player.pill.r];
-        _player.board[_player.pill.r] = Data.FieldStates.empty;
+        _player.board[_player.pill.r] = Data.Field.empty;
         _player.pill.r = _player.pill.l + 1;
         break;
       case 90:
       case 270:
         _player.board[_player.pill.l - 8] = _player.board[_player.pill.r];
-        _player.board[_player.pill.r] = Data.FieldStates.empty;
+        _player.board[_player.pill.r] = Data.Field.empty;
         _player.pill.r = _player.pill.l - 8;
         break;
     }
@@ -129,14 +129,76 @@ let Game = {
   Shift: () => {
     console.log("shifting down");
   },
+  // This method check if two cells are the same color (one might be virus tho)
+  CheckPills: (a, b) => {
+    if (a == b - 10 || a == b || a == b + 10) return true;
+    return false;
+  },
+  // This method checks if player set 4 or more pills/viruses in row or column and removes it
+  // TODO: Add score after clearing viruses
+  ClearPills: (board) => {
+    // Pushing values to indexesToClear, wrapped in function to not repeat code
+    let PushCells = (cells) => {
+      cells.forEach((cell) => {
+        indexesToClear.push(cell.index);
+      });
+    };
+    let indexesToClear = [];
+    // First searching for 4+ same color cells in the column
+    for (let i = 7; i >= 0; i--) {
+      let lastCells = [];
+      for (let y = 15; y >= 0; y--) {
+        let currentCell = board[y * 8 + i];
+        if (lastCells.length == 0 && currentCell == Data.Field.empty) continue;
+        if (lastCells.length != 0) {
+          if (
+            !Game.CheckPills(currentCell, lastCells[lastCells.length - 1].value)
+          ) {
+            if (lastCells.length >= 4) PushCells(lastCells);
+            lastCells = [];
+          }
+        }
+        if (currentCell != Data.Field.empty)
+          lastCells.push({ value: currentCell, index: y * 8 + i });
+      }
+      if (lastCells.length >= 4) PushCells(lastCells);
+    }
+    // Searching for 4+ same color cells in the row
+    for (let i = 15; i >= 0; i--) {
+      let lastCells = [];
+      for (let x = 7; x >= 0; x--) {
+        let currentCell = board[i * 8 + x];
+        if (lastCells.length == 0 && currentCell == Data.Field.empty) continue;
+        if (lastCells.length != 0) {
+          if (
+            !Game.CheckPills(currentCell, lastCells[lastCells.length - 1].value)
+          ) {
+            if (lastCells.length >= 4) PushCells(lastCells);
+            lastCells = [];
+          }
+        }
+        if (currentCell != Data.Field.empty)
+          lastCells.push({ value: currentCell, index: i * 8 + x });
+      }
+      if (lastCells.length >= 4) PushCells(lastCells);
+    }
+    if (indexesToClear.length != 0) {
+      indexesToClear.filter(Utility.getUnique).forEach((cell) => {
+        board[cell] = Data.Field.empty;
+        BOARD.childNodes[cell].removeAttribute("data-pair");
+      });
+      Engine.Render(board);
+      return true;
+    }
+    return false;
+  },
 
   // This method checks whether or not pill is colliding with something below
   CheckCollision: (board, cell1, cell2, orientation) => {
     if (cell1 > 119) return true; // Check if -
     if (
-      board[cell1 + 8] != Data.FieldStates.empty ||
-      (board[cell2 + 8] != Data.FieldStates.empty &&
-        orientation == "horizontal")
+      board[cell1 + 8] != Data.Field.empty ||
+      (board[cell2 + 8] != Data.Field.empty && orientation == "horizontal")
     )
       return true;
     return false;
@@ -146,7 +208,7 @@ let Game = {
 
     _player.spawnPill();
     Engine.Render(_player.board);
-
+    let _gravity = false;
     let _interval = setInterval(() => {
       // Checking if pill collide with something.
       if (
@@ -162,15 +224,50 @@ let Game = {
         _player.board[_player.pill.r + 8] = _player.board[_player.pill.r];
         // Clearing cells after shifting
         if (_player.getOrientation() == "horizontal")
-          _player.board[_player.pill.l] = Data.FieldStates.empty;
-        _player.board[_player.pill.r] = Data.FieldStates.empty;
+          _player.board[_player.pill.l] = Data.Field.empty;
+        _player.board[_player.pill.r] = Data.Field.empty;
 
         _player.pill.l += 8; //
         _player.pill.r += 8; //
         _player.pill.y++;
       } else {
+        // When pill is placed, save it id within div dataset
+        BOARD.childNodes[_player.pill.l].dataset.pair = BOARD.childNodes[
+          _player.pill.r
+        ].dataset.pair = _player.getPillIndex();
+
         //check for tiles to remove
-        _player.isGrounded = true;
+        let cleared = Game.ClearPills(_player.board);
+        // !PROTOTYPE GRAVITY
+        // !For now affects as cells separately
+        let isMoveableCell = false;
+        if (cleared || _gravity) {
+          for (let i = 119; i >= 0; i--) {
+            if (
+              _player.board[i] != Data.Field.empty &&
+              _player.board[i + 8] ==
+                Data.Field
+                  .empty /*&&
+              !(
+                BOARD.childNodes[i].dataset.pair ==
+                  BOARD.childNodes[i + 1].dataset.pair ||
+                BOARD.childNodes[i].dataset.pair ==
+                  BOARD.childNodes[i - 1].dataset.pair
+              ) || (BOARD.childNodes[i].dataset.pair ==
+                BOARD.childNodes[i + 1].dataset.pair && )*/
+            ) {
+              _player.board[i + 8] = _player.board[i];
+              _player.board[i] = Data.Field.empty;
+              isMoveableCell = true;
+              _gravity = true;
+              continue;
+            }
+          }
+        }
+        if (!isMoveableCell) {
+          _player.isGrounded = true;
+          _gravity = false;
+        }
       }
       if (_player.isGrounded) _player.spawnPill();
       Engine.Render(_player.board);

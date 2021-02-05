@@ -85,16 +85,16 @@ let Engine = {
     let _class;
     for (let i = 0; i < board.length; i++) {
       switch (board[i]) {
-        case Data.FieldStates.empty:
+        case Data.Field.empty:
           _class = "empty";
           break;
-        case Data.FieldStates.blue:
+        case Data.Field.blue:
           _class = "blue_pill";
           break;
-        case Data.FieldStates.yellow:
+        case Data.Field.yellow:
           _class = "yellow_pill";
           break;
-        case Data.FieldStates.red:
+        case Data.Field.red:
           _class = "red_pill";
           break;
       }

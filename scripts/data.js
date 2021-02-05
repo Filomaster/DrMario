@@ -2,7 +2,7 @@
 
 // Player class for easier (at least in theory) multiplayer implementation
 class Player {
-  gameSpeed = 500;
+  gameSpeed = 250;
   constructor() {
     this.board = new Array(128);
     this.pill = { l: 0, r: 0, y: 0, rotation: 0 }; //TODO: It might be not the best option
@@ -44,6 +44,8 @@ class Player {
     // > interval
     this.getInterval = () => _interval;
     this.setInterval = (interval) => (_interval = interval);
+    // > pill index
+    this.getPillIndex = () => _pillsIndex;
     // > orientation
     this.getOrientation = function () {
       return this.pill.rotation == 0 || this.pill.rotation == 180
@@ -63,6 +65,14 @@ class Player {
 // All data and structures, shared in other scripts.
 let Data = {
   // All possible field status, equivalent of enumerator
-  FieldStates: { empty: 0, red: 1, yellow: 2, blue: 3 },
+  Field: {
+    empty: 0,
+    red: 1,
+    yellow: 2,
+    blue: 3,
+    virus_r: 11,
+    virus_y: 12,
+    virus_b: 13,
+  },
   Mode: { single: 1, multi: 2 },
 };
