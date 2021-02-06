@@ -1,7 +1,5 @@
 "use strict";
 
-let BOARD = document.getElementById("board");
-
 //TODO: Add automatic pause and open pause menu on focus lost
 
 // Pause menu:
@@ -12,6 +10,7 @@ let BOARD = document.getElementById("board");
 
 let player; // !temporary player. Modify when creating multiplayer mode
 let Game = {
+  EmulationMode: Data.EmulationMode.NES,
   // Initializing boards for players. Player number is passed as an argument
   InitBoard: (playerCount) => {
     for (let i = 0; i < player.board.length; i++) {
@@ -32,7 +31,13 @@ let Game = {
     // Adding listeners for whole document to handle keyboard input
     // This whole callback hell serves purpose of implementing different callback for alternate keybinding in multiplayer
     document.addEventListener("keydown", (e) => {
-      Engine.Input.GetKey(e, Game.Move, Game.Rotate, Game.Shift, player);
+      Engine.Input.GetKey(e, Game.Move, Game.Rotate, player);
+    });
+    document.addEventListener("keydown", (e) => {
+      Engine.Input.GetKeyOnce(e, Game.StartShift, player);
+    });
+    document.addEventListener("keyup", (e) => {
+      Engine.Input.GetKeyOnce(e, Game.StopShift, player);
     });
 
     Game.InitBoard(1); // Filing whole Game.board with 0
@@ -51,8 +56,7 @@ let Game = {
       return;
     if (
       (direction == 1 &&
-        (_player.pill.r ==
-          (_player.pill.y - (_player.getOrientation() == "vertical")) * 8 + 7 ||
+        (_player.pill.r == (_player.pill.y - (_player.getOrientation() == "vertical")) * 8 + 7 ||
           _player.board[_player.pill.r + 1] != Data.Field.empty)) ||
       (_player.getOrientation() == "vertical" &&
         _player.board[_player.pill.l + 1] != Data.Field.empty)
@@ -77,16 +81,15 @@ let Game = {
   },
   // This method rotates player pill
   Rotate: (_player, rotation) => {
-    if (_player.state != Data.State.movement) return;
+    if (_player.state != Data.State.movement) return; // Rotating only when player can interact with pill
     let _ro = _player.pill.rotation; // Saving old rotation value, to check if color swap will be needed
     // Modifying values to keep consistent 0*, 90*, 180* and 270* rotation values
     if (_player.pill.rotation + rotation >= 360) _player.pill.rotation = 0;
-    else if (_player.pill.rotation + rotation <= -90)
-      _player.pill.rotation = 270;
+    else if (_player.pill.rotation + rotation <= -90) _player.pill.rotation = 270;
     else _player.pill.rotation += rotation;
 
     let _rn = _player.pill.rotation; // Saving new value to check if color swap will be needed
-    let _tmp = _player.board[_player.pill.l - 9];
+    let _tmp = _player.board[_player.pill.l - 9]; // Saving value of the cell above l for swapping after wall kick
     let _fillGap = false;
     // Checking if color flipping is necessary
     if (
@@ -101,14 +104,20 @@ let Game = {
       _player.board[_player.pill.l] = _r;
     }
     // If pill is in the vertical orientation and player try to rotate it, pill will move back 1 position
-    // TODO: block rotation if tile is blocked on top, on left, and make same for the left side
     if (
       (_player.pill.r == (_player.pill.y - 1) * 8 + 7 ||
         _player.board[_player.pill.l + 1] != Data.Field.empty) &&
       _player.getOrientation() == "horizontal"
     ) {
-      // BUG: When pill can't be rotated and returns from rotate method, player move is ended, for some reason;
-      if (_player.board[_player.pill.l - 1] != Data.Field.empty) return;
+      if (
+        _player.board[_player.pill.l - 1] != Data.Field.empty ||
+        (player.board[_player.pill.l + 1] != Data.Field.empty &&
+          Game.EmulationMode == Data.EmulationMode.ATARI)
+      ) {
+        _player.pill.rotation = _ro;
+        return;
+      }
+
       Game.Move(_player, -1);
       _fillGap = true;
     }
@@ -129,9 +138,21 @@ let Game = {
     if (_fillGap) _player.board[_player.pill.l - 8] = _tmp;
     Engine.Render(_player.board);
   },
-  Shift: () => {
-    console.log("shifting down");
+  // Dropping pills
+  StartShift: (_player) => {
+    if (_player.state == Data.State.shifting) return;
+    clearInterval(_player.getInterval());
+    _player.state = Data.State.shifting;
+    let shiftSpeed = _player.gameSpeed > 100 ? 50 : _player.gameSpeed > 50 ? 25 : 1;
+    Game.Gravity(_player, shiftSpeed);
   },
+  StopShift: (_player, _state = Data.State.movement) => {
+    if (Game.EmulationMode == Data.EmulationMode.ATARI && _state == Data.State.movement) return;
+    clearInterval(_player.getInterval());
+    _player.state = _state;
+    Game.Gravity(_player);
+  },
+
   // This method check if two cells are the same color (one might be virus tho)
   CheckPills: (a, b) => {
     if (a == b - 10 || a == b || a == b + 10) return true;
@@ -154,9 +175,7 @@ let Game = {
         let currentCell = board[y * 8 + i];
         if (lastCells.length == 0 && currentCell == Data.Field.empty) continue;
         if (lastCells.length != 0) {
-          if (
-            !Game.CheckPills(currentCell, lastCells[lastCells.length - 1].value)
-          ) {
+          if (!Game.CheckPills(currentCell, lastCells[lastCells.length - 1].value)) {
             if (lastCells.length >= 4) PushCells(lastCells);
             lastCells = [];
           }
@@ -173,9 +192,7 @@ let Game = {
         let currentCell = board[i * 8 + x];
         if (lastCells.length == 0 && currentCell == Data.Field.empty) continue;
         if (lastCells.length != 0) {
-          if (
-            !Game.CheckPills(currentCell, lastCells[lastCells.length - 1].value)
-          ) {
+          if (!Game.CheckPills(currentCell, lastCells[lastCells.length - 1].value)) {
             if (lastCells.length >= 4) PushCells(lastCells);
             lastCells = [];
           }
@@ -205,10 +222,11 @@ let Game = {
       return true;
     return false;
   },
-  Gravity: (_player) => {
+  Gravity: (_player, _speed = _player.getSpeed()) => {
     let _interval = setInterval(() => {
       // Checking current game state
       switch (_player.state) {
+        case Data.State.shifting:
         case Data.State.movement:
           // Checking if pill collide with something.
           if (
@@ -235,25 +253,31 @@ let Game = {
               _player.pill.r
             ].dataset.pair = _player.getPillIndex();
             _player.isGrounded = true; //Setting grounded value
+            if ((_player.state = Data.State.shifting)) Game.StopShift(_player, Data.State.clear);
             _player.state = Data.State.clear; //After placing pill, we need to check if any cells can be cleared
           }
           break;
         case Data.State.clear:
-          _player.state = Game.ClearPills(_player.board)
-            ? Data.State.gravity
-            : Data.State.movement;
+          clearInterval(_player.getInterval());
+          Game.Gravity(_player, 75);
+          _player.state = Game.ClearPills(_player.board) ? Data.State.gravity : Data.State.movement;
+          if (_player.state == Data.State.movement) {
+            clearInterval(_player.getInterval());
+            Game.Gravity(_player);
+          }
           break;
         case Data.State.gravity:
           // TODO: COMMENT THIS YOU LITTLE SHIT
           let isMoveableCell = false;
           for (let i = 119; i >= 0; i--) {
             if (
-              _player.board[i] != Data.Field.empty &&
+              (_player.board[i] == Data.Field.red ||
+                _player.board[i] == Data.Field.yellow ||
+                _player.board[i] == Data.Field.blue) &&
               _player.board[i + 8] == Data.Field.empty
             ) {
               if (
-                BOARD.childNodes[i].dataset.pair ==
-                  BOARD.childNodes[i - 1].dataset.pair &&
+                BOARD.childNodes[i].dataset.pair == BOARD.childNodes[i - 1].dataset.pair &&
                 _player.board[i + 8] == Data.Field.empty &&
                 _player.board[i + 7] == Data.Field.empty
               ) {
@@ -261,25 +285,20 @@ let Game = {
                 _player.board[i + 7] = _player.board[i - 1];
                 _player.board[i] = Data.Field.empty;
                 _player.board[i - 1] = Data.Field.empty;
-                BOARD.childNodes[i + 8].dataset.pair =
-                  BOARD.childNodes[i].dataset.pair;
-                BOARD.childNodes[i + 7].dataset.pair =
-                  BOARD.childNodes[i - 1].dataset.pair;
+                BOARD.childNodes[i + 8].dataset.pair = BOARD.childNodes[i].dataset.pair;
+                BOARD.childNodes[i + 7].dataset.pair = BOARD.childNodes[i - 1].dataset.pair;
                 BOARD.childNodes[i].removeAttribute("dataset-pair");
                 BOARD.childNodes[i - 1].removeAttribute("dataset-pair");
                 isMoveableCell = true;
                 continue;
               }
               if (
-                BOARD.childNodes[i].dataset.pair !=
-                  BOARD.childNodes[i + 1].dataset.pair &&
-                BOARD.childNodes[i].dataset.pair !=
-                  BOARD.childNodes[i - 1].dataset.pair
+                BOARD.childNodes[i].dataset.pair != BOARD.childNodes[i + 1].dataset.pair &&
+                BOARD.childNodes[i].dataset.pair != BOARD.childNodes[i - 1].dataset.pair
               ) {
                 _player.board[i + 8] = _player.board[i];
                 _player.board[i] = Data.Field.empty;
-                BOARD.childNodes[i + 8].dataset.pair =
-                  BOARD.childNodes[i].dataset.pair;
+                BOARD.childNodes[i + 8].dataset.pair = BOARD.childNodes[i].dataset.pair;
                 BOARD.childNodes[i].removeAttribute("dataset-pair");
                 isMoveableCell = true;
                 continue;
@@ -291,11 +310,10 @@ let Game = {
           }
           break;
       }
-      if (_player.state == Data.State.movement && _player.isGrounded)
-        _player.spawnPill();
+      if (_player.state == Data.State.movement && _player.isGrounded) _player.spawnPill();
       Engine.Render(_player.board);
       // if (DEBUG) Utility.printBoard(_player.board);
-    }, _player.gameSpeed);
+    }, _speed);
 
     _player.setInterval(_interval);
   },

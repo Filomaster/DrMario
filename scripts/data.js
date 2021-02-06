@@ -8,7 +8,10 @@ class Player {
     this.pill = { l: 0, r: 0, y: 0, rotation: 0 }; //TODO: It might be not the best option
     this.isGrounded = true; //! idk if this is the best idea
     // Pseudo private variables
-    let _speed = 1000;
+    let _referenceSpeedLvl = Data.SpeedLevel.LOW;
+    let _speedLvl = Data.SpeedLevel.LOW;
+    let _virusLvl = 0;
+    let _pillCounter = 0;
     let _score = 0;
     let _interval;
     // In the original Dr.Mario game (NES version), pills were pre-generated at the start of game.
@@ -19,11 +22,18 @@ class Player {
 
     // methods
     this.spawnPill = function () {
+      if (_pillCounter % 10 == 0 && _pillCounter != 0) {
+        if (_speedLvl < _referenceSpeedLvl + 50) {
+          _speedLvl++;
+          console.log(`SPEED UP! \n Current lvl: ${_speedLvl}}`);
+        }
+      }
       this.pill = { l: 3, r: 4, y: 0, rotation: 0 }; //TODO: Describe pill
       this.state = Data.State.movement;
       this.board[3] = _preGeneratedPills[_pillsIndex].l;
       this.board[4] = _preGeneratedPills[_pillsIndex].r;
       _pillsIndex = _pillsIndex >= 127 ? 0 : _pillsIndex + 1;
+      _pillCounter++;
       this.isGrounded = false;
     };
     this.generatePills = () => {
@@ -34,11 +44,49 @@ class Player {
         };
       }
     };
+    // This method generates new board for each level with viruses placed.
+    // I've tried to remake original algorithm as close as possible.
+    this.generateBoard = () => {
+      this.board.fill(Data.Field.empty);
+      let viruses = (_virusLvl + 1) * 4;
+      do {
+        let candidateY = 15 - Utility.getRandomInt(0, Data.MaximumRow[_virusLvl]);
+        let candidateX = Utility.getRandomInt(0, 7);
+        viruses--;
+        let remainder = viruses / 4;
+        // Calculate viruses colors
+        let virusColor =
+          remainder == Data.Field.virus_y
+            ? 12 // If reminder is 0 virus color is yellow
+            : remainder == Data.Field.virus_r
+            ? 11 // If reminder is 1 virus color is red
+            : remainder == Data.Field.virus_b
+            ? 13 // If reminder is w virus color is blue
+            : Data.VirusColor[Utility.getRandomInt(0, 15)]; // In any other case virus color is generated randomly from table
 
+        while (this.board[candidateY * 8 + candidateX] != Data.Field.empty) {
+          candidateX++;
+          if (candidateX == 8) { candidateX = 0; candidateY++; } //prettier-ignore
+        }
+      } while (viruses > 0);
+    };
     // getters and setters
-    // > speed
-    this.getSpeed = () => _speed;
-    this.setSpeed = (speed) => (_speed = speed);
+    // Get speed
+    this.getSpeed = () => {
+      return Data.FramesPerRow[_speedLvl] * Data.FRAME_MULTIPLIER;
+    };
+    this.setSpeedLevel = (speedLvl) => (_speedLvl = _referenceSpeedLvl = speedLvl);
+    this.getSpeedLevel = () => {
+      return {
+        name:
+          _referenceSpeedLvl == Data.SpeedLevel.LOW
+            ? "LOW"
+            : _referenceSpeedLvl == Data.SpeedLevel.MED
+            ? "MED"
+            : "HI",
+        level: _speedLvl,
+      };
+    };
     // > score
     this.getScore = () => _score;
     this.setScore = (score) => (_score = score);
@@ -49,9 +97,7 @@ class Player {
     this.getPillIndex = () => _pillsIndex;
     // > orientation
     this.getOrientation = function () {
-      return this.pill.rotation == 0 || this.pill.rotation == 180
-        ? "horizontal"
-        : "vertical";
+      return this.pill.rotation == 0 || this.pill.rotation == 180 ? "horizontal" : "vertical";
     };
 
     this.logThis = function () {
@@ -63,18 +109,22 @@ class Player {
   }
 }
 
-// All data and structures, shared in other scripts.
+// All data and structures, shared in other scripts; equivalent of enumerators
 let Data = {
-  // All possible field status, equivalent of enumerator
-  Field: {
-    empty: 0,
-    red: 1,
-    yellow: 2,
-    blue: 3,
-    virus_r: 11,
-    virus_y: 12,
-    virus_b: 13,
-  },
-  State: { movement: 0, clear: 1, gravity: 2 },
-  Mode: { single: 1, multi: 2 },
+  // All possible field status, empty, 3x color and 3x viruses
+  Field: { empty: 0, red: 1, yellow: 2, blue: 3, virus_r: 11, virus_y: 12, virus_b: 13 },
+  State: { movement: 0, clear: 1, gravity: 2, shifting: 3 }, // Game state, for performance optimization in the main loop
+  PlayerMode: { single: 1, multi: 2 }, // Possible game modes, based on original game
+  EmulationMode: { ATARI: 0, NES: 1, GB: 2, GBC: 3 }, // Emulation mode. Some versions may have slightly different mechanics
+  SpeedLevel: { LOW: 15, MED: 25, HI: 31 },
+  // Tables needed for original game mechanics like setting speed or generating viruses
+  MaximumRow: [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 11, 11, 12, 12, 13],
+  VirusColor: [12, 11, 13, 13, 11, 12, 12, 11, 13, 13, 11, 12, 12, 11, 13, 11],
+  FRAME_MULTIPLIER: 16.6667,
+  // prettier-ignore
+  FramesPerRow: [
+    70, 68, 66, 64, 62, 60, 58, 56, 54, 52, 50, 48, 46, 44, 42, 40, 38, 
+    36, 34, 32, 30, 28, 26, 24, 22, 20,	19, 18, 17, 16, 15, 14, 13, 12, 
+    11, 10, 10, 9, 9, 8, 8, 7, 7, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 5,
+    5, 5, 5, 4, 4, 4, 4, 4, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1 ],
 };

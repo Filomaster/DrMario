@@ -1,5 +1,8 @@
 "use strict";
 
+let BOARD = document.getElementById("board");
+let BACKGROUND = document.getElementById("background");
+
 // This object handle all 'technical side' of the game
 // (basically anything that is not related to game data)
 let Engine = {
@@ -11,9 +14,9 @@ let Engine = {
     Binding: {
       left: ["a", "arrowleft"],
       right: ["d", "arrowright"],
-      shift_down: ["s", "arrowdown"],
       rotate_left: ["w", "arrowup"],
       rotate_right: ["shift", "shift"],
+      shift_down: ["s", "arrowdown"],
       pause: ["escape", "backspace"],
     },
     // This method handle all one-time inputs in the game
@@ -21,7 +24,6 @@ let Engine = {
       e, // passed event
       cb_move, // callback for left key
       cb_rotate, // callback for rotate left
-      cb_shift, // callback for shifting pill down
       player_one,
       player_two = player_one // alternative callback for
     ) => {
@@ -50,15 +52,19 @@ let Engine = {
         case Engine.Input.Binding.rotate_right[1]:
           cb_rotate(player_two, 90);
           break;
-        case Engine.Input.Binding.shift_down[0]:
-          cb_shift();
-          break;
-        case Engine.Input.Binding.shift_down[1]:
-          cb_shift();
-          break;
         case Engine.Input.Binding.pause[0]:
         case Engine.Input.Binding.pause[1]:
           console.log("pause");
+          break;
+      }
+    },
+    GetKeyOnce: (e, cb_shift, player_one, player_two = player_one) => {
+      switch (e.key.toLowerCase()) {
+        case Engine.Input.Binding.shift_down[0]:
+          cb_shift(player_one);
+          break;
+        case Engine.Input.Binding.shift_down[1]:
+          cb_shift(player_two);
           break;
       }
     },
@@ -96,6 +102,15 @@ let Engine = {
           break;
         case Data.Field.red:
           _class = "red_pill";
+          break;
+        case Data.Field.virus_b:
+          _class = "blue_virus";
+          break;
+        case Data.Field.virus_y:
+          _class = "yellow_virus";
+          break;
+        case Data.Field.virus_r:
+          _class = "red_virus";
           break;
       }
       BOARD.childNodes[i].classList = _class;
