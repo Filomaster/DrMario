@@ -1,7 +1,6 @@
 "use strict";
 
 let BOARD = document.getElementById("board");
-console.log(BOARD);
 
 //TODO: Add automatic pause and open pause menu on focus lost
 
@@ -41,6 +40,7 @@ let Game = {
   },
   //
   Move: (_player, direction) => {
+    if (_player.state != Data.State.movement) return;
     if (
       (direction == -1 &&
         (_player.pill.l == _player.pill.y * 8 ||
@@ -77,6 +77,7 @@ let Game = {
   },
   // This method rotates player pill
   Rotate: (_player, rotation) => {
+    if (_player.state != Data.State.movement) return;
     let _ro = _player.pill.rotation; // Saving old rotation value, to check if color swap will be needed
     // Modifying values to keep consistent 0*, 90*, 180* and 270* rotation values
     if (_player.pill.rotation + rotation >= 360) _player.pill.rotation = 0;
@@ -187,7 +188,6 @@ let Game = {
         board[cell] = Data.Field.empty;
         BOARD.childNodes[cell].removeAttribute("data-pair");
       });
-      Engine.Render(board);
       return true;
     }
     return false;
@@ -205,43 +205,47 @@ let Game = {
   },
   Gravity: (_player) => {
     // TODO: (UPDATE THIS) -> First perform gravity for current player pill
-
-    _player.spawnPill();
-    Engine.Render(_player.board);
-    let _gravity = false;
+    // TODO: !IMPORTANT! DO NOT check PILL GRAVITY and GRAVITY AFTER CLEAR in ONE CYCLE
+    // YOU NEED TO MAKE CONDITION AND CHECK ONLY ONE (AND YOU SHOULD CHECK FOR CLEAR IN SINGLE CYCLE TOO)
     let _interval = setInterval(() => {
-      // Checking if pill collide with something.
-      if (
-        !Game.CheckCollision(
-          _player.board,
-          _player.pill.l,
-          _player.pill.r,
-          _player.getOrientation()
-        )
-      ) {
-        // Shifting cells one row lower
-        _player.board[_player.pill.l + 8] = _player.board[_player.pill.l];
-        _player.board[_player.pill.r + 8] = _player.board[_player.pill.r];
-        // Clearing cells after shifting
-        if (_player.getOrientation() == "horizontal")
-          _player.board[_player.pill.l] = Data.Field.empty;
-        _player.board[_player.pill.r] = Data.Field.empty;
+      // Checking current game state
+      switch (_player.state) {
+        case Data.State.movement:
+          // Checking if pill collide with something.
+          if (
+            !Game.CheckCollision(
+              _player.board,
+              _player.pill.l,
+              _player.pill.r,
+              _player.getOrientation()
+            )
+          ) {
+            // Shifting cells one row lower
+            _player.board[_player.pill.l + 8] = _player.board[_player.pill.l];
+            _player.board[_player.pill.r + 8] = _player.board[_player.pill.r];
+            // Clearing cells after shifting
+            if (_player.getOrientation() == "horizontal")
+              _player.board[_player.pill.l] = Data.Field.empty;
+            _player.board[_player.pill.r] = Data.Field.empty;
 
-        _player.pill.l += 8; //
-        _player.pill.r += 8; //
-        _player.pill.y++;
-      } else {
-        // When pill is placed, save it id within div dataset
-        BOARD.childNodes[_player.pill.l].dataset.pair = BOARD.childNodes[
-          _player.pill.r
-        ].dataset.pair = _player.getPillIndex();
-
-        //check for tiles to remove
-        let cleared = Game.ClearPills(_player.board);
-        // !PROTOTYPE GRAVITY
-        // !For now affects as cells separately
-        let isMoveableCell = false;
-        if (cleared || _gravity) {
+            _player.pill.l += 8; //
+            _player.pill.r += 8; //
+            _player.pill.y++;
+          } else {
+            BOARD.childNodes[_player.pill.l].dataset.pair = BOARD.childNodes[
+              _player.pill.r
+            ].dataset.pair = _player.getPillIndex();
+            _player.isGrounded = true; //Setting grounded value
+            _player.state = Data.State.clear; //After placing pill, we need to check if any cells can be cleared
+          }
+          break;
+        case Data.State.clear:
+          _player.state = Game.ClearPills(_player.board)
+            ? Data.State.gravity
+            : Data.State.movement;
+          break;
+        case Data.State.gravity:
+          let isMoveableCell = false;
           for (let i = 119; i >= 0; i--) {
             if (
               _player.board[i] != Data.Field.empty &&
@@ -256,20 +260,25 @@ let Game = {
               ) || (BOARD.childNodes[i].dataset.pair ==
                 BOARD.childNodes[i + 1].dataset.pair && )*/
             ) {
+              // TODO: check if cell was separated to perform gravity
+              console.log(
+                BOARD.childNodes[i - 1].dataset.pair,
+                BOARD.childNodes[i].dataset.pair,
+                BOARD.childNodes[i + 1].dataset.pair
+              );
               _player.board[i + 8] = _player.board[i];
               _player.board[i] = Data.Field.empty;
               isMoveableCell = true;
-              _gravity = true;
               continue;
             }
           }
-        }
-        if (!isMoveableCell) {
-          _player.isGrounded = true;
-          _gravity = false;
-        }
+          if (!isMoveableCell) {
+            _player.state = Data.State.clear;
+          }
+          break;
       }
-      if (_player.isGrounded) _player.spawnPill();
+      if (_player.state == Data.State.movement && _player.isGrounded)
+        _player.spawnPill();
       Engine.Render(_player.board);
       // if (DEBUG) Utility.printBoard(_player.board);
     }, _player.gameSpeed);
@@ -277,7 +286,18 @@ let Game = {
     _player.setInterval(_interval);
   },
   Game1P: function () {
+    player.spawnPill();
+    Engine.Render(player.board);
     this.Gravity(player);
+    setInterval(Game.CheckFocus, 300);
+  },
+  CheckFocus: function () {
+    if (!document.hasFocus()) {
+      clearInterval(player.getInterval());
+      player.setInterval(null);
+    } else if (document.hasFocus() && player.getInterval() == null) {
+      Game.Gravity(player);
+    }
   },
 };
 

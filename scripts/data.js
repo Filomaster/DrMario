@@ -20,6 +20,7 @@ class Player {
     // methods
     this.spawnPill = function () {
       this.pill = { l: 3, r: 4, y: 0, rotation: 0 }; //TODO: Describe pill
+      this.state = Data.State.movement;
       this.board[3] = _preGeneratedPills[_pillsIndex].l;
       this.board[4] = _preGeneratedPills[_pillsIndex].r;
       _pillsIndex = _pillsIndex >= 127 ? 0 : _pillsIndex + 1;
@@ -74,5 +75,6 @@ let Data = {
     virus_y: 12,
     virus_b: 13,
   },
+  State: { movement: 0, clear: 1, gravity: 2 },
   Mode: { single: 1, multi: 2 },
 };
