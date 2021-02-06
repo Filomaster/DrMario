@@ -71,16 +71,6 @@ body {
   z-index: 4;
 }
 
-.lamp {
-  position: absolute;
-  width: 134vh;
-  height: 100vh;
-  margin: auto;
-  background: radial-gradient(#fffef72d, transparent);
-  background-blend-mode: color-dodge;
-  z-index: 3;
-}
-
 .blue_pill {
   background-color: #78a0db;
 }

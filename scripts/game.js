@@ -86,6 +86,8 @@ let Game = {
     else _player.pill.rotation += rotation;
 
     let _rn = _player.pill.rotation; // Saving new value to check if color swap will be needed
+    let _tmp = _player.board[_player.pill.l - 9];
+    let _fillGap = false;
     // Checking if color flipping is necessary
     if (
       (_ro == 0 && _rn == 270) ||
@@ -104,13 +106,12 @@ let Game = {
       (_player.pill.r == (_player.pill.y - 1) * 8 + 7 ||
         _player.board[_player.pill.l + 1] != Data.Field.empty) &&
       _player.getOrientation() == "horizontal"
-    )
-      Game.Move(_player, -1); // BUG: If pill can't move back, well it doesn't. I should prevent rotation in that case
-    // if (
-    //   _player.board[_player.pill.r - 8] != Data.Field.empty &&
-    //   _player.getOrientation() == "vertical"
-    // )
-    //   Game.Move(_player, 1);
+    ) {
+      // BUG: When pill can't be rotated and returns from rotate method, player move is ended, for some reason;
+      if (_player.board[_player.pill.l - 1] != Data.Field.empty) return;
+      Game.Move(_player, -1);
+      _fillGap = true;
+    }
     switch (_player.pill.rotation) {
       case 0:
       case 180:
@@ -125,6 +126,7 @@ let Game = {
         _player.pill.r = _player.pill.l - 8;
         break;
     }
+    if (_fillGap) _player.board[_player.pill.l - 8] = _tmp;
     Engine.Render(_player.board);
   },
   Shift: () => {
@@ -204,9 +206,6 @@ let Game = {
     return false;
   },
   Gravity: (_player) => {
-    // TODO: (UPDATE THIS) -> First perform gravity for current player pill
-    // TODO: !IMPORTANT! DO NOT check PILL GRAVITY and GRAVITY AFTER CLEAR in ONE CYCLE
-    // YOU NEED TO MAKE CONDITION AND CHECK ONLY ONE (AND YOU SHOULD CHECK FOR CLEAR IN SINGLE CYCLE TOO)
     let _interval = setInterval(() => {
       // Checking current game state
       switch (_player.state) {
@@ -245,31 +244,46 @@ let Game = {
             : Data.State.movement;
           break;
         case Data.State.gravity:
+          // TODO: COMMENT THIS YOU LITTLE SHIT
           let isMoveableCell = false;
           for (let i = 119; i >= 0; i--) {
             if (
               _player.board[i] != Data.Field.empty &&
-              _player.board[i + 8] ==
-                Data.Field
-                  .empty /*&&
-              !(
-                BOARD.childNodes[i].dataset.pair ==
-                  BOARD.childNodes[i + 1].dataset.pair ||
-                BOARD.childNodes[i].dataset.pair ==
-                  BOARD.childNodes[i - 1].dataset.pair
-              ) || (BOARD.childNodes[i].dataset.pair ==
-                BOARD.childNodes[i + 1].dataset.pair && )*/
+              _player.board[i + 8] == Data.Field.empty
             ) {
-              // TODO: check if cell was separated to perform gravity
-              console.log(
-                BOARD.childNodes[i - 1].dataset.pair,
-                BOARD.childNodes[i].dataset.pair,
-                BOARD.childNodes[i + 1].dataset.pair
-              );
-              _player.board[i + 8] = _player.board[i];
-              _player.board[i] = Data.Field.empty;
-              isMoveableCell = true;
-              continue;
+              if (
+                BOARD.childNodes[i].dataset.pair ==
+                  BOARD.childNodes[i - 1].dataset.pair &&
+                _player.board[i + 8] == Data.Field.empty &&
+                _player.board[i + 7] == Data.Field.empty
+              ) {
+                _player.board[i + 8] = _player.board[i];
+                _player.board[i + 7] = _player.board[i - 1];
+                _player.board[i] = Data.Field.empty;
+                _player.board[i - 1] = Data.Field.empty;
+                BOARD.childNodes[i + 8].dataset.pair =
+                  BOARD.childNodes[i].dataset.pair;
+                BOARD.childNodes[i + 7].dataset.pair =
+                  BOARD.childNodes[i - 1].dataset.pair;
+                BOARD.childNodes[i].removeAttribute("dataset-pair");
+                BOARD.childNodes[i - 1].removeAttribute("dataset-pair");
+                isMoveableCell = true;
+                continue;
+              }
+              if (
+                BOARD.childNodes[i].dataset.pair !=
+                  BOARD.childNodes[i + 1].dataset.pair &&
+                BOARD.childNodes[i].dataset.pair !=
+                  BOARD.childNodes[i - 1].dataset.pair
+              ) {
+                _player.board[i + 8] = _player.board[i];
+                _player.board[i] = Data.Field.empty;
+                BOARD.childNodes[i + 8].dataset.pair =
+                  BOARD.childNodes[i].dataset.pair;
+                BOARD.childNodes[i].removeAttribute("dataset-pair");
+                isMoveableCell = true;
+                continue;
+              }
             }
           }
           if (!isMoveableCell) {
