@@ -13,13 +13,13 @@ let Utility = {
   },
   // Method for getting only unique values from array
   getUnique: (value, index, self) => {
-    return self.indexOf(value) === index;
+    return self.indexOf(value) === index && value !== null;
   },
 
   printBoard: (board) => {
     let _out = "";
     for (let i = 0; i < board.length; i++)
-      _out += `${i != 0 && i % 8 == 0 ? "\n" : ""}${
+      _out += `${i != 0 && i % 8 == 0 ? "\n" : ""} ${i != 0 && board[i] < 10 ? " " : ""} ${
         board[i] == 0 ? "·" : board[i]
       } `;
     console.log(_out);

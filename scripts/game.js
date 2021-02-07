@@ -10,7 +10,7 @@
 
 let player; // !temporary player. Modify when creating multiplayer mode
 let Game = {
-  EmulationMode: Data.EmulationMode.NES,
+  EmulationMode: Data.EmulationMode.ATARI,
   // Initializing boards for players. Player number is passed as an argument
   InitBoard: (playerCount) => {
     for (let i = 0; i < player.board.length; i++) {
@@ -40,7 +40,8 @@ let Game = {
       Engine.Input.GetKeyOnce(e, Game.StopShift, player);
     });
 
-    Game.InitBoard(1); // Filing whole Game.board with 0
+    player.setupBoard();
+    // Game.InitBoard(1); // Filing whole Game.board with 0
     Engine.InitBoard(player.board, BOARD); // Creating game board in the document
   },
   //

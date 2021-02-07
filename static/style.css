@@ -83,6 +83,18 @@ body {
   background-color: #9e454c;
 }
 
+.blue_virus {
+  background-color: #0044ff;
+}
+
+.yellow_virus {
+  background-color: #ffdd00;
+}
+
+.red_virus {
+  background-color: #ff0425;
+}
+
 @-webkit-keyframes flicker {
   0% {
     opacity: 0.27861;

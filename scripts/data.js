@@ -9,8 +9,8 @@ class Player {
     this.isGrounded = true; //! idk if this is the best idea
     // Pseudo private variables
     let _referenceSpeedLvl = Data.SpeedLevel.LOW;
-    let _speedLvl = Data.SpeedLevel.LOW;
-    let _virusLvl = 0;
+    let _speedLvl = Data.SpeedLevel.MED;
+    let _virusLvl = 10;
     let _pillCounter = 0;
     let _score = 0;
     let _interval;
@@ -46,28 +46,48 @@ class Player {
     };
     // This method generates new board for each level with viruses placed.
     // I've tried to remake original algorithm as close as possible.
-    this.generateBoard = () => {
+    // It may not be prettiest or most efficient one, but I wanted it to be faithful to the source.
+    this.setupBoard = () => {
       this.board.fill(Data.Field.empty);
       let viruses = (_virusLvl + 1) * 4;
-      do {
+      generation: do {
         let candidateY = 15 - Utility.getRandomInt(0, Data.MaximumRow[_virusLvl]);
         let candidateX = Utility.getRandomInt(0, 7);
-        viruses--;
-        let remainder = viruses / 4;
+        let remainder = (viruses - 1) / 4;
         // Calculate viruses colors
         let virusColor =
-          remainder == Data.Field.virus_y
-            ? 12 // If reminder is 0 virus color is yellow
-            : remainder == Data.Field.virus_r
-            ? 11 // If reminder is 1 virus color is red
-            : remainder == Data.Field.virus_b
-            ? 13 // If reminder is w virus color is blue
+          remainder == 0
+            ? Data.Field.virus_y // If reminder is 0 virus color is yellow
+            : remainder == 1
+            ? Data.Field.virus_r // If reminder is 1 virus color is red
+            : remainder == 2
+            ? Data.Field.virus_b // If reminder is 2 virus color is blue
             : Data.VirusColor[Utility.getRandomInt(0, 15)]; // In any other case virus color is generated randomly from table
-
-        while (this.board[candidateY * 8 + candidateX] != Data.Field.empty) {
+        // Checking if candidate coordinates are free to place virus
+        let index = candidateY * 8 + candidateX;
+        while (this.board[index] != Data.Field.empty) {
           candidateX++;
           if (candidateX == 8) { candidateX = 0; candidateY++; } //prettier-ignore
+          if (candidateY == 16) continue generation;
         }
+        do {
+          // Checking 2 cells away from candidate in all 4 directions
+          let checkedCells = [
+            this.board[index - 2],
+            index < 125 ? this.board[index + 2] : null,
+            this.board[index - 8],
+            index < 119 ? this.board[index + 8] : null,
+          ];
+          if (checkedCells.filter(Utility.getUnique).length == 3) {
+            candidateX++;
+            if (candidateX == 8) { candidateX = 0; candidateY++; } //prettier-ignore
+            if (candidateY == 16) continue generation;
+          }
+          if (!checkedCells.filter(Utility.getUnique).includes(virusColor)) break;
+          virusColor = virusColor > 13 ? 11 : virusColor + 1;
+        } while (true);
+        this.board[index] = virusColor;
+        viruses--;
       } while (viruses > 0);
     };
     // getters and setters
@@ -118,7 +138,7 @@ let Data = {
   EmulationMode: { ATARI: 0, NES: 1, GB: 2, GBC: 3 }, // Emulation mode. Some versions may have slightly different mechanics
   SpeedLevel: { LOW: 15, MED: 25, HI: 31 },
   // Tables needed for original game mechanics like setting speed or generating viruses
-  MaximumRow: [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 11, 11, 12, 12, 13],
+  MaximumRow: [9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 10, 10, 11, 11, 12],
   VirusColor: [12, 11, 13, 13, 11, 12, 12, 11, 13, 13, 11, 12, 12, 11, 13, 11],
   FRAME_MULTIPLIER: 16.6667,
   // prettier-ignore
