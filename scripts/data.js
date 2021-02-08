@@ -9,8 +9,8 @@ class Player {
     this.isGrounded = true; //! idk if this is the best idea
     // Pseudo private variables
     let _referenceSpeedLvl = Data.SpeedLevel.LOW;
-    let _speedLvl = Data.SpeedLevel.MED;
-    let _virusLvl = 10;
+    let _speedLvl = Data.SpeedLevel.LOW;
+    let _virusLvl = 0;
     let _pillCounter = 0;
     let _score = 0;
     let _interval;
@@ -22,16 +22,20 @@ class Player {
 
     // methods
     this.spawnPill = function () {
+      // if (DEBUG && _pillCounter % 10 != 0)
+      //   console.log(10 - (_pillCounter % 10) + " pills to next speed lvl");
       if (_pillCounter % 10 == 0 && _pillCounter != 0) {
         if (_speedLvl < _referenceSpeedLvl + 50) {
           _speedLvl++;
-          console.log(`SPEED UP! \n Current lvl: ${_speedLvl}}`);
+          if (DEBUG) console.info(`SPEED UP! \n Current lvl: ${_speedLvl}`);
         }
       }
       this.pill = { l: 3, r: 4, y: 0, rotation: 0 }; //TODO: Describe pill
       this.state = Data.State.movement;
       this.board[3] = _preGeneratedPills[_pillsIndex].l;
       this.board[4] = _preGeneratedPills[_pillsIndex].r;
+      BOARD.childNodes[3].dataset.pair = _pillsIndex;
+      BOARD.childNodes[4].dataset.pair = _pillsIndex;
       _pillsIndex = _pillsIndex >= 127 ? 0 : _pillsIndex + 1;
       _pillCounter++;
       this.isGrounded = false;
@@ -50,10 +54,11 @@ class Player {
     this.setupBoard = () => {
       this.board.fill(Data.Field.empty);
       let viruses = (_virusLvl + 1) * 4;
+      let loopCounter = 0;
       generation: do {
         let candidateY = 15 - Utility.getRandomInt(0, Data.MaximumRow[_virusLvl]);
         let candidateX = Utility.getRandomInt(0, 7);
-        let remainder = (viruses - 1) / 4;
+        let remainder = (viruses - 1) % 4;
         // Calculate viruses colors
         let virusColor =
           remainder == 0
@@ -64,29 +69,54 @@ class Player {
             ? Data.Field.virus_b // If reminder is 2 virus color is blue
             : Data.VirusColor[Utility.getRandomInt(0, 15)]; // In any other case virus color is generated randomly from table
         // Checking if candidate coordinates are free to place virus
-        let index = candidateY * 8 + candidateX;
-        while (this.board[index] != Data.Field.empty) {
+        // let index = candidateY * 8 + candidateX;
+        while (this.board[candidateY * 8 + candidateX] != Data.Field.empty) {
+          console.log(
+            `Cell [${candidateY},${candidateX}] (${candidateY * 8 + candidateX}) is not empty`
+          );
+          console.log(this.board[candidateY * 8 + candidateX]);
           candidateX++;
           if (candidateX == 8) { candidateX = 0; candidateY++; } //prettier-ignore
           if (candidateY == 16) continue generation;
+          // index = candidateY * 8 + candidateX;
         }
-        do {
+        colors: do {
           // Checking 2 cells away from candidate in all 4 directions
           let checkedCells = [
-            this.board[index - 2],
-            index < 125 ? this.board[index + 2] : null,
-            this.board[index - 8],
-            index < 119 ? this.board[index + 8] : null,
+            this.board[candidateY * 8 + candidateX - 2],
+            candidateY * 8 + candidateX < 125 ? this.board[candidateY * 8 + candidateX + 2] : null,
+            this.board[candidateY * 8 + candidateX - 8],
+            candidateY * 8 + candidateX < 119 ? this.board[candidateY * 8 + candidateX + 8] : null,
           ];
+          if (!checkedCells.filter(Utility.getUnique).includes(virusColor)) {
+            console.log("Color is good, braking from loop");
+            break colors;
+          }
           if (checkedCells.filter(Utility.getUnique).length == 3) {
+            console.log(checkedCells);
             candidateX++;
             if (candidateX == 8) { candidateX = 0; candidateY++; } //prettier-ignore
             if (candidateY == 16) continue generation;
+            continue colors;
+            // index = candidateY * 8 + candidateX;
           }
-          if (!checkedCells.filter(Utility.getUnique).includes(virusColor)) break;
-          virusColor = virusColor > 13 ? 11 : virusColor + 1;
+          if (virusColor == Data.Field.virus_y) {
+            virusColor = Data.Field.virus_b;
+            console.log("Changed virus color to blue");
+          } else if (virusColor == Data.Field.virus_r) {
+            virusColor = Data.Field.virus_y;
+            console.log("Changed virus color to yellow");
+          } else if (virusColor == Data.Field.virus_b) {
+            virusColor = Data.Field.virus_r;
+            console.log("Changed virus color to red");
+          }
+          loopCounter++;
+          if (loopCounter > 10) {
+            this.setupBoard();
+            return;
+          }
         } while (true);
-        this.board[index] = virusColor;
+        this.board[candidateY * 8 + candidateX] = virusColor;
         viruses--;
       } while (viruses > 0);
     };
@@ -107,9 +137,19 @@ class Player {
         level: _speedLvl,
       };
     };
+    this.getVirusLevel = () => _virusLvl;
+    this.setVirusLevel = (lvl) => (_virusLvl = lvl);
     // > score
     this.getScore = () => _score;
-    this.setScore = (score) => (_score = score);
+    this.incrementScore = (viruses) => {
+      let bonus =
+        (viruses < 6 ? viruses : 6) *
+        100 *
+        (_referenceSpeedLvl == 15 ? 1 : _referenceSpeedLvl == 25 ? 2 : 3);
+      _score += bonus;
+      if (DEBUG && bonus > 0) console.info(`points: ${bonus}, score: ${_score}`);
+    };
+
     // > interval
     this.getInterval = () => _interval;
     this.setInterval = (interval) => (_interval = interval);
@@ -118,10 +158,6 @@ class Player {
     // > orientation
     this.getOrientation = function () {
       return this.pill.rotation == 0 || this.pill.rotation == 180 ? "horizontal" : "vertical";
-    };
-
-    this.logThis = function () {
-      console.log(this);
     };
 
     // Functions called in constructor
@@ -133,7 +169,7 @@ class Player {
 let Data = {
   // All possible field status, empty, 3x color and 3x viruses
   Field: { empty: 0, red: 1, yellow: 2, blue: 3, virus_r: 11, virus_y: 12, virus_b: 13 },
-  State: { movement: 0, clear: 1, gravity: 2, shifting: 3 }, // Game state, for performance optimization in the main loop
+  State: { movement: 0, clear: 1, gravity: 2, shifting: 3, win: 4, lose: 5, menu: 6 }, // Game state, for performance optimization in the main loop
   PlayerMode: { single: 1, multi: 2 }, // Possible game modes, based on original game
   EmulationMode: { ATARI: 0, NES: 1, GB: 2, GBC: 3 }, // Emulation mode. Some versions may have slightly different mechanics
   SpeedLevel: { LOW: 15, MED: 25, HI: 31 },

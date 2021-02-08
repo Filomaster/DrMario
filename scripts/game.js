@@ -52,6 +52,7 @@ let Game = {
         (_player.pill.l == _player.pill.y * 8 ||
           _player.board[_player.pill.l - 1] != Data.Field.empty)) ||
       (_player.getOrientation() == "vertical" &&
+        direction == -1 &&
         _player.board[_player.pill.r - 1] != Data.Field.empty)
     )
       return;
@@ -60,6 +61,7 @@ let Game = {
         (_player.pill.r == (_player.pill.y - (_player.getOrientation() == "vertical")) * 8 + 7 ||
           _player.board[_player.pill.r + 1] != Data.Field.empty)) ||
       (_player.getOrientation() == "vertical" &&
+        direction == 1 &&
         _player.board[_player.pill.l + 1] != Data.Field.empty)
     )
       return;
@@ -67,14 +69,19 @@ let Game = {
     // TODO: Comment process below
     let _r = _player.board[_player.pill.r];
     let _l = _player.board[_player.pill.l];
-
     _player.board[_player.pill.l + direction] = _l;
     _player.board[_player.pill.r + direction] = _r;
+    BOARD.childNodes[_player.pill.l + direction].dataset.pair = _player.getPillIndex();
+    BOARD.childNodes[_player.pill.r + direction].dataset.pair = _player.getPillIndex();
 
-    if (direction == 1 || _player.getOrientation() == "vertical")
+    if (direction == 1 || _player.getOrientation() == "vertical") {
       _player.board[_player.pill.l] = Data.Field.empty;
-    if (direction == -1 || _player.getOrientation() == "vertical")
+      BOARD.childNodes[_player.pill.l].removeAttribute("data-pair");
+    }
+    if (direction == -1 || _player.getOrientation() == "vertical") {
       _player.board[_player.pill.r] = Data.Field.empty;
+      BOARD.childNodes[_player.pill.r].removeAttribute("data-pair");
+    }
 
     _player.pill.l += direction;
     _player.pill.r += direction;
@@ -126,13 +133,18 @@ let Game = {
       case 0:
       case 180:
         _player.board[_player.pill.l + 1] = _player.board[_player.pill.r];
+        BOARD.childNodes[_player.pill.l + 1].dataset.pair = _player.getPillIndex();
         _player.board[_player.pill.r] = Data.Field.empty;
+        BOARD.childNodes[_player.pill.r].removeAttribute("data-pair");
         _player.pill.r = _player.pill.l + 1;
         break;
       case 90:
       case 270:
         _player.board[_player.pill.l - 8] = _player.board[_player.pill.r];
+        if (_player.pill.l > 7)
+          BOARD.childNodes[_player.pill.l - 8].dataset.pair = _player.getPillIndex();
         _player.board[_player.pill.r] = Data.Field.empty;
+        BOARD.childNodes[_player.pill.r].removeAttribute("data-pair");
         _player.pill.r = _player.pill.l - 8;
         break;
     }
@@ -144,11 +156,12 @@ let Game = {
     if (_player.state == Data.State.shifting) return;
     clearInterval(_player.getInterval());
     _player.state = Data.State.shifting;
-    let shiftSpeed = _player.gameSpeed > 100 ? 50 : _player.gameSpeed > 50 ? 25 : 1;
-    Game.Gravity(_player, shiftSpeed);
+    // let shiftSpeed = _player.gameSpeed > 100 ? 50 : _player.gameSpeed > 50 ? 25 : 1;
+    Game.Gravity(_player, 20);
   },
   StopShift: (_player, _state = Data.State.movement) => {
     if (Game.EmulationMode == Data.EmulationMode.ATARI && _state == Data.State.movement) return;
+    // BUG: Gravity in NES after shifting is canceled
     clearInterval(_player.getInterval());
     _player.state = _state;
     Game.Gravity(_player);
@@ -160,11 +173,12 @@ let Game = {
     return false;
   },
   // This method checks if player set 4 or more pills/viruses in row or column and removes it
-  // TODO: Add score after clearing viruses
-  ClearPills: (board) => {
+  ClearPills: (board, _player) => {
     // Pushing values to indexesToClear, wrapped in function to not repeat code
+    let viruses = 0;
     let PushCells = (cells) => {
       cells.forEach((cell) => {
+        if (cell.value > 10) viruses += 1;
         indexesToClear.push(cell.index);
       });
     };
@@ -207,7 +221,10 @@ let Game = {
       indexesToClear.filter(Utility.getUnique).forEach((cell) => {
         board[cell] = Data.Field.empty;
         BOARD.childNodes[cell].removeAttribute("data-pair");
+        BOARD.childNodes[cell].classList.add("clear");
+        Engine.Render(board);
       });
+      _player.incrementScore(viruses);
       return true;
     }
     return false;
@@ -239,11 +256,15 @@ let Game = {
             )
           ) {
             // Shifting cells one row lower
+            BOARD.childNodes[_player.pill.l + 8].dataset.pair = BOARD.childNodes[_player.pill.r + 8].dataset.pair = _player.getPillIndex(); //prettier-ignore
             _player.board[_player.pill.l + 8] = _player.board[_player.pill.l];
             _player.board[_player.pill.r + 8] = _player.board[_player.pill.r];
             // Clearing cells after shifting
-            if (_player.getOrientation() == "horizontal")
+            if (_player.getOrientation() == "horizontal") {
+              BOARD.childNodes[_player.pill.l].removeAttribute("data-pair");
               _player.board[_player.pill.l] = Data.Field.empty;
+            }
+            BOARD.childNodes[_player.pill.r].removeAttribute("data-pair");
             _player.board[_player.pill.r] = Data.Field.empty;
 
             _player.pill.l += 8; //
@@ -256,12 +277,22 @@ let Game = {
             _player.isGrounded = true; //Setting grounded value
             if ((_player.state = Data.State.shifting)) Game.StopShift(_player, Data.State.clear);
             _player.state = Data.State.clear; //After placing pill, we need to check if any cells can be cleared
+            clearInterval(_player.getInterval());
+            Game.Gravity(_player, 50);
           }
           break;
         case Data.State.clear:
-          clearInterval(_player.getInterval());
-          Game.Gravity(_player, 75);
-          _player.state = Game.ClearPills(_player.board) ? Data.State.gravity : Data.State.movement;
+          _player.state = Game.ClearPills(_player.board, _player)
+            ? Data.State.gravity
+            : Data.State.movement;
+          setTimeout(() => {
+            BOARD.childNodes.forEach((node) => node.classList.remove("clear"));
+            Engine.Render(_player.board);
+          }, 100);
+          if (_player.board.filter(Utility.getVirusesCount) == 0) {
+            _player.setVirusLevel(_player.getVirusLevel() + 1);
+            _player.setupBoard();
+          }
           if (_player.state == Data.State.movement) {
             clearInterval(_player.getInterval());
             Game.Gravity(_player);
@@ -288,8 +319,8 @@ let Game = {
                 _player.board[i - 1] = Data.Field.empty;
                 BOARD.childNodes[i + 8].dataset.pair = BOARD.childNodes[i].dataset.pair;
                 BOARD.childNodes[i + 7].dataset.pair = BOARD.childNodes[i - 1].dataset.pair;
-                BOARD.childNodes[i].removeAttribute("dataset-pair");
-                BOARD.childNodes[i - 1].removeAttribute("dataset-pair");
+                BOARD.childNodes[i].removeAttribute("data-pair");
+                BOARD.childNodes[i - 1].removeAttribute("data-pair");
                 isMoveableCell = true;
                 continue;
               }
@@ -300,7 +331,7 @@ let Game = {
                 _player.board[i + 8] = _player.board[i];
                 _player.board[i] = Data.Field.empty;
                 BOARD.childNodes[i + 8].dataset.pair = BOARD.childNodes[i].dataset.pair;
-                BOARD.childNodes[i].removeAttribute("dataset-pair");
+                BOARD.childNodes[i].removeAttribute("data-pair");
                 isMoveableCell = true;
                 continue;
               }

@@ -9,7 +9,7 @@ body {
   width: 134vh;
   height: 100vh;
   margin: auto;
-  background-image: linear-gradient(45deg, #901829 25%, transparent 26%), linear-gradient(-45deg, #901829 25%, transparent 26%), linear-gradient(45deg, transparent 74%, #901829 75%), linear-gradient(-45deg, transparent 74%, #901829 75%);
+  background-image: linear-gradient(45deg, #008267 25%, transparent 26%), linear-gradient(-45deg, #008267 25%, transparent 26%), linear-gradient(45deg, transparent 74%, #008267 75%), linear-gradient(-45deg, transparent 74%, #008267 75%);
   background-size: 10vh 10vh;
   background-position: 0 0, 0 5vh, 5vh -5vh, -5vh 0;
 }
@@ -71,28 +71,114 @@ body {
   z-index: 4;
 }
 
-.blue_pill {
-  background-color: #78a0db;
+.pixel-perfect {
+  background-position: center;
+  background-size: 100%;
+  -ms-interpolation-mode: nearest-neighbor;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -o-pixelated;
+      image-rendering: pixelated;
 }
 
-.yellow_pill {
-  background-color: #f4e377;
+.pixel-perfect.virus.yellow {
+  background-image: url("/images/sprites/viruses/yellow_new.png");
 }
 
-.red_pill {
-  background-color: #9e454c;
+.pixel-perfect.virus.yellow.clear {
+  background-image: url("/images/sprites/viruses/yl_x.png");
 }
 
-.blue_virus {
-  background-color: #0044ff;
+.pixel-perfect.virus.red {
+  background-image: url("/images/sprites/viruses/virus_red.png");
 }
 
-.yellow_virus {
-  background-color: #ffdd00;
+.pixel-perfect.virus.red.clear {
+  background-image: url("/images/sprites/viruses/br_x.png");
 }
 
-.red_virus {
-  background-color: #ff0425;
+.pixel-perfect.virus.blue {
+  background-image: url("/images/sprites/viruses/virus_blue.png");
+}
+
+.pixel-perfect.virus.blue.clear {
+  background-image: url("/images/sprites/viruses/bl_x.png");
+}
+
+.pixel-perfect.pill.yellow.single {
+  background-image: url("/images/sprites/pills/yl_dot.png");
+}
+
+.pixel-perfect.pill.yellow.up {
+  background-image: url("/images/sprites/pills/yl_up.png");
+}
+
+.pixel-perfect.pill.yellow.down {
+  background-image: url("/images/sprites/pills/yl_down.png");
+}
+
+.pixel-perfect.pill.yellow.left {
+  background-image: url("/images/sprites/pills/yl_left.png");
+}
+
+.pixel-perfect.pill.yellow.right {
+  background-image: url("/images/sprites/pills/yl_right.png");
+}
+
+.pixel-perfect.pill.yellow.clear {
+  background-image: url("/images/sprites/pills/yl_o.png");
+}
+
+.pixel-perfect.pill.red.single {
+  background-image: url("/images/sprites/pills/br_dot.png");
+}
+
+.pixel-perfect.pill.red.up {
+  background-image: url("/images/sprites/pills/br_up.png");
+}
+
+.pixel-perfect.pill.red.down {
+  background-image: url("/images/sprites/pills/br_down.png");
+}
+
+.pixel-perfect.pill.red.left {
+  background-image: url("/images/sprites/pills/br_left.png");
+}
+
+.pixel-perfect.pill.red.right {
+  background-image: url("/images/sprites/pills/br_right.png");
+}
+
+.pixel-perfect.pill.red.clear {
+  background-image: url("/images/sprites/pills/br_o.png");
+}
+
+.pixel-perfect.pill.blue.single {
+  background-image: url("/images/sprites/pills/bl_dot.png");
+}
+
+.pixel-perfect.pill.blue.up {
+  background-image: url("/images/sprites/pills/bl_up.png");
+}
+
+.pixel-perfect.pill.blue.down {
+  background-image: url("/images/sprites/pills/bl_down.png");
+}
+
+.pixel-perfect.pill.blue.left {
+  background-image: url("/images/sprites/pills/bl_left.png");
+}
+
+.pixel-perfect.pill.blue.right {
+  background-image: url("/images/sprites/pills/bl_right.png");
+}
+
+.pixel-perfect.pill.blue.clear {
+  background-image: url("/images/sprites/pills/bl_o.png");
+}
+
+.error {
+  background-color: white;
 }
 
 @-webkit-keyframes flicker {

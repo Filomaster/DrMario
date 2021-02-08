@@ -90,28 +90,51 @@ let Engine = {
   Render: (board) => {
     let _class;
     for (let i = 0; i < board.length; i++) {
+      _class = "pixel-perfect ";
       switch (board[i]) {
         case Data.Field.empty:
           _class = "empty";
           break;
         case Data.Field.blue:
-          _class = "blue_pill";
+          _class += "pill blue";
           break;
         case Data.Field.yellow:
-          _class = "yellow_pill";
+          _class += "pill yellow";
           break;
         case Data.Field.red:
-          _class = "red_pill";
+          _class += "pill red";
           break;
         case Data.Field.virus_b:
-          _class = "blue_virus";
+          _class += "virus blue";
           break;
         case Data.Field.virus_y:
-          _class = "yellow_virus";
+          _class += "virus yellow";
           break;
         case Data.Field.virus_r:
-          _class = "red_virus";
+          _class += "virus red";
           break;
+        default:
+          _class = "error";
+          break;
+      }
+      if (BOARD.childNodes[i].classList.contains("clear")) {
+        _class = BOARD.childNodes[i].classList;
+      } else {
+        if (i > 7 && BOARD.childNodes[i - 8].dataset.pair == BOARD.childNodes[i].dataset.pair)
+          _class += " down";
+        else if (
+          i < 119 &&
+          BOARD.childNodes[i + 8].dataset.pair == BOARD.childNodes[i].dataset.pair
+        )
+          _class += " up";
+        else if (i > 0 && BOARD.childNodes[i - 1].dataset.pair == BOARD.childNodes[i].dataset.pair)
+          _class += " right";
+        else if (
+          i < 127 &&
+          BOARD.childNodes[i + 1].dataset.pair == BOARD.childNodes[i].dataset.pair
+        )
+          _class += " left";
+        else _class += " single";
       }
       BOARD.childNodes[i].classList = _class;
     }
