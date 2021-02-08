@@ -11,12 +11,25 @@ let Utility = {
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min + 1)) + min;
   },
+  // Method for getting only unique values from array
+  getUnique: (value, index, self) => {
+    return self.indexOf(value) === index && value !== null;
+  },
+  getVirusesCount: (value) => value > 10,
+
   printBoard: (board) => {
     let _out = "";
     for (let i = 0; i < board.length; i++)
-      _out += `${i != 0 && i % 8 == 0 ? "\n" : ""}${
-        board[i] == 0 ? "·" : "#"
+      _out += `${i != 0 && i % 8 == 0 ? "\n" : ""} ${i != 0 && board[i] < 10 ? " " : ""} ${
+        board[i] == 0 ? "·" : board[i]
       } `;
     console.log(_out);
   },
 };
+//prettier-ignore
+// let Debug = {
+//   log: (x) => { if(DEBUG) console.log(x)},
+//   info: (x) => { if(DEBUG) console.info(x)},
+//   warn: (x) => { if(DEBUG) console.warn(x)},
+//   error: (x) => { if(DEBUG) console.error(x)},
+// }

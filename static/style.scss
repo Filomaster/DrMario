@@ -1,7 +1,6 @@
 $gs: 5vh;
 $board-width: 8 * $gs;
 $screen-width: 134vh;
-$bcg: #901829; //#308512;
 
 // All colors in the foreground
 $gray: #837e85;
@@ -14,6 +13,8 @@ $bcg-brown: #ad5216;
 $bcg-red: #901829;
 $bcg-green: #008267;
 $bcg-blue: #123eb2;
+
+$bcg: $bcg-green;
 
 body {
   color: #fff;
@@ -58,12 +59,7 @@ body {
   bottom: 0;
   right: 0;
   background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
-    linear-gradient(
-      90deg,
-      rgba(255, 0, 0, 0.05),
-      rgba(0, 255, 0, 0.05),
-      rgba(0, 0, 255, 0.05)
-    );
+    linear-gradient(90deg, rgba(255, 0, 0, 0.05), rgba(0, 255, 0, 0.05), rgba(0, 0, 255, 0.05));
   z-index: 2;
   background-size: 100% 2px, 3px 100%;
   pointer-events: none;
@@ -96,90 +92,78 @@ body {
   z-index: 4;
 }
 
-.lamp {
-  position: absolute;
-  width: 134vh;
-  height: 100vh;
-  margin: auto;
-  background: radial-gradient(#fff9ce2d, transparent);
-  background-blend-mode: color-dodge;
-  z-index: 3;
+// prettier-ignore
+.pixel-perfect{
+  background-position: center;
+  background-size: 100%;
+  image-rendering: pixelated;
+  &.virus{
+    &.yellow { 
+      background-image: url("/images/sprites/viruses/yellow_new.png"); 
+      &.clear{background-image: url("/images/sprites/viruses/yl_x.png")}
+    }
+    &.red { 
+      background-image: url("/images/sprites/viruses/virus_red.png");
+      &.clear{background-image: url("/images/sprites/viruses/br_x.png")}
+    }
+    &.blue { 
+      background-image: url("/images/sprites/viruses/virus_blue.png"); 
+      &.clear{background-image: url("/images/sprites/viruses/bl_x.png")}
+    }
+  }
+  &.pill{
+    &.yellow {
+      &.single { background-image: url("/images/sprites/pills/yl_dot.png") }
+      &.up { background-image: url("/images/sprites/pills/yl_up.png")  }
+      &.down { background-image: url("/images/sprites/pills/yl_down.png") }
+      &.left { background-image: url("/images/sprites/pills/yl_left.png") }
+      &.right { background-image: url("/images/sprites/pills/yl_right.png") }
+      &.clear { background-image: url("/images/sprites/pills/yl_o.png") }
+    }
+    &.red { 
+      &.single { background-image: url("/images/sprites/pills/br_dot.png") }
+      &.up { background-image: url("/images/sprites/pills/br_up.png")  }
+      &.down { background-image: url("/images/sprites/pills/br_down.png") }
+      &.left { background-image: url("/images/sprites/pills/br_left.png") }
+      &.right { background-image: url("/images/sprites/pills/br_right.png") }
+      &.clear { background-image: url("/images/sprites/pills/br_o.png") }
+    }
+    &.blue { 
+      &.single { background-image: url("/images/sprites/pills/bl_dot.png") }
+      &.up { background-image: url("/images/sprites/pills/bl_up.png")  }
+      &.down { background-image: url("/images/sprites/pills/bl_down.png") }
+      &.left { background-image: url("/images/sprites/pills/bl_left.png") }
+      &.right { background-image: url("/images/sprites/pills/bl_right.png") }
+      &.clear { background-image: url("/images/sprites/pills/bl_o.png") }
+    }
+  }
 }
 
-// field states
-.blue_pill {
-  background-color: #78a0db;
+.error {
+  background-color: white;
 }
-.yellow_pill {
-  background-color: #f4e377;
-}
-.red_pill {
-  background-color: #9e454c;
-}
-
 // Flicker keyframes are taken from internet to emulate crt look
+// prettier-ignore
 @keyframes flicker {
-  0% {
-    opacity: 0.27861;
-  }
-  5% {
-    opacity: 0.34769;
-  }
-  10% {
-    opacity: 0.23604;
-  }
-  15% {
-    opacity: 0.90626;
-  }
-  20% {
-    opacity: 0.18128;
-  }
-  25% {
-    opacity: 0.83891;
-  }
-  30% {
-    opacity: 0.65583;
-  }
-  35% {
-    opacity: 0.67807;
-  }
-  40% {
-    opacity: 0.26559;
-  }
-  45% {
-    opacity: 0.84693;
-  }
-  50% {
-    opacity: 0.96019;
-  }
-  55% {
-    opacity: 0.08594;
-  }
-  60% {
-    opacity: 0.20313;
-  }
-  65% {
-    opacity: 0.71988;
-  }
-  70% {
-    opacity: 0.53455;
-  }
-  75% {
-    opacity: 0.37288;
-  }
-  80% {
-    opacity: 0.71428;
-  }
-  85% {
-    opacity: 0.70419;
-  }
-  90% {
-    opacity: 0.7003;
-  }
-  95% {
-    opacity: 0.36108;
-  }
-  100% {
-    opacity: 0.24387;
-  }
+  0% { opacity: 0.27861; }
+  5% { opacity: 0.34769; }
+  10% { opacity: 0.23604; }
+  15% { opacity: 0.90626; }
+  20% { opacity: 0.18128; }
+  25% { opacity: 0.83891; }
+  30% { opacity: 0.65583; }
+  35% { opacity: 0.67807; }
+  40% { opacity: 0.26559; }
+  45% { opacity: 0.84693; }
+  50% { opacity: 0.96019; }
+  55% { opacity: 0.08594; }
+  60% { opacity: 0.20313; }
+  65% { opacity: 0.71988; }
+  70% { opacity: 0.53455; }
+  75% { opacity: 0.37288; }
+  80% { opacity: 0.71428; }
+  85% { opacity: 0.70419; }
+  90% { opacity: 0.7003; }
+  95% { opacity: 0.36108; }
+  100% { opacity: 0.24387; }
 }
