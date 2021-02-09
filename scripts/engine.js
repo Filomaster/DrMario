@@ -1,7 +1,8 @@
 "use strict";
 
 let BOARD = document.getElementById("board");
-let BACKGROUND = document.getElementById("background");
+let BACKGROUND = document.getElementById("background-fill");
+let ROOT = document.documentElement;
 
 // This object handle all 'technical side' of the game
 // (basically anything that is not related to game data)
@@ -86,6 +87,60 @@ let Engine = {
       field.dataset.id = i;
       parent.append(field);
     });
+  },
+  ChengeBackground: (color_a, color_b = "transparent") => {
+    console.log(color_a);
+    ROOT.style.setProperty("--background-tile-a", Data.ColorsATARI.bcg[color_a]);
+  },
+  DrawBackground: (mode, _player) => {
+    let screen, color_a, offset_y;
+    let spritesMultiplier = 1;
+    switch (mode) {
+      case Data.EmulationMode.ATARI:
+        screen = Data.ScreenSize.ATARI;
+        color_a = Data.ColorsATARI.bcg[_player.getVirusLevel() % 5];
+        offset_y = 2;
+        break;
+      case Data.EmulationMode.NES:
+        screen = Data.ScreenSize.NES;
+        console.log(player.getSpeedLevel());
+        color_a =
+          _player.getSpeedLevel().name == "LOW"
+            ? Data.ColorsNES.bcg[0]
+            : _player.getSpeedLevel().name == "MED"
+            ? Data.ColorsNES.bcg[1]
+            : Data.ColorsNES.bcg[2];
+        break;
+      case Data.EmulationMode.GB:
+        screen = Data.ScreenSize.GB;
+        spritesMultiplier = 2;
+        color_a = "#d6d6d6";
+        break;
+    }
+    let tileSize = 100 / screen.h;
+    ROOT.style.setProperty("--tile-size", tileSize + "vh");
+    ROOT.style.setProperty("--offset-x", (screen.w / 2 - 5) * tileSize + "vh");
+    ROOT.style.setProperty("--offset-y", offset_y * tileSize + "vh");
+    ROOT.style.setProperty("--jar-width", 12 * tileSize + "vh");
+    ROOT.style.setProperty("--jar-height", 21 * tileSize + "vh");
+    ROOT.style.setProperty("--left-decoration-width", 13 * tileSize + "vh");
+    ROOT.style.setProperty("--glass-height", 12 * tileSize + "vh");
+    ROOT.style.setProperty("--scoreboard-height", 10 * tileSize + "vh");
+    ROOT.style.setProperty("--info-width", 10 * tileSize + "vh");
+    ROOT.style.setProperty("--board-offset-x", 2 * tileSize + "vh");
+    ROOT.style.setProperty("--board-offset-y", 4 * tileSize + "vh");
+    ROOT.style.setProperty("--tiles-width", screen.w);
+    ROOT.style.setProperty("--tiles-height", screen.h);
+    ROOT.style.setProperty("--width", (100 / screen.h) * screen.w + "vh");
+    ROOT.style.setProperty("--background-tile-a", color_a);
+    for (let i = 0; i < screen.h; i++) {
+      for (let j = 0; j < screen.w; j++) {
+        let tile = document.createElement("div");
+        tile.style = "width: var(--tile-size); height: var(--tile-size);";
+        if (!(i % 2 == j % 2) == 0 ? 0 : 1) tile.style.backgroundColor = "var(--background-tile-a)";
+        BACKGROUND.appendChild(tile);
+      }
+    }
   },
   Render: (board) => {
     let _class;

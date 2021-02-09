@@ -5,33 +5,145 @@ body {
   padding: 0;
 }
 
+:root {
+  --width: 134vh;
+  --height: 100vh;
+  --jar-width: 0;
+  --jar-height: 0;
+  --left-decoration-width: 0;
+  --scoreboard-height: 0;
+  --info-width: 0;
+  --glass-height: 0;
+  --tiles-width: 40;
+  --tiles-height: 24;
+  --board-offset-x: 0;
+  --board-offset-y: 0;
+  --offset-x: 16vh;
+  --offset-y: 6vh;
+  --tile-size: 10px;
+  --background-tile-a: #d6d6d6;
+  --background-tile-b: transparent;
+}
+
 .background {
-  width: 134vh;
+  width: var(--width);
   height: 100vh;
   margin: auto;
-  background-image: linear-gradient(45deg, #008267 25%, transparent 26%), linear-gradient(-45deg, #008267 25%, transparent 26%), linear-gradient(45deg, transparent 74%, #008267 75%), linear-gradient(-45deg, transparent 74%, #008267 75%);
-  background-size: 10vh 10vh;
-  background-position: 0 0, 0 5vh, 5vh -5vh, -5vh 0;
+  position: relative;
+}
+
+.background-fill {
+  position: absolute;
+  width: var(--width);
+  display: -ms-grid;
+  display: grid;
+  -ms-grid-columns: (var(--tile-size))[var];
+      grid-template-columns: repeat(var(--tiles-width), var(--tile-size));
+  grid-auto-rows: minmax(var(--tile-size), auto);
+}
+
+.scoreboard {
+  position: absolute;
+  width: var(--info-width);
+  height: var(--left-decoration-width);
+  right: var(--tile-size);
+  bottom: 0;
+  background-position: center;
+  background-image: url("/images/infoboard.png");
+  background-repeat: no-repeat;
+  background-size: var(--info-width) var(--left-decoration-width);
+  -ms-interpolation-mode: nearest-neighbor;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -o-pixelated;
+      image-rendering: pixelated;
+}
+
+.info {
+  position: absolute;
+  width: var(--left-decoration-width);
+  height: var(--scoreboard-height);
+  left: var(--tile-size);
+  top: var(--tile-size);
+  background-position: center;
+  background-image: url("/images/scoreboard.png");
+  background-repeat: no-repeat;
+  background-size: var(--left-decoration-width) var(--scoreboard-height);
+  -ms-interpolation-mode: nearest-neighbor;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -o-pixelated;
+      image-rendering: pixelated;
+}
+
+.glass {
+  position: absolute;
+  width: var(--left-decoration-width);
+  height: var(--glass-height);
+  left: var(--tile-size);
+  bottom: 0;
+  background-position: center;
+  background-image: url("/images/glass.png");
+  background-repeat: no-repeat;
+  background-size: var(--left-decoration-width) var(--glass-height);
+  -ms-interpolation-mode: nearest-neighbor;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -o-pixelated;
+      image-rendering: pixelated;
+}
+
+.jar {
+  position: absolute;
+  top: var(--offset-y);
+  left: var(--offset-x);
+  width: var(--jar-width);
+  height: var(--jar-height);
+  background-image: url("/images/jar.png");
+  background-repeat: no-repeat;
+  background-size: var(--jar-width) var(--jar-height);
+  -ms-interpolation-mode: nearest-neighbor;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -o-pixelated;
+      image-rendering: pixelated;
+  -webkit-mask: url("/images/jar-mask.png"), var(--background-tile-a);
+          mask: url("/images/jar-mask.png"), var(--background-tile-a);
+  -webkit-mask-size: var(--jar-width) var(--jar-height);
+          mask-size: var(--jar-width) var(--jar-height);
+}
+
+.jar-mask {
+  position: absolute;
+  top: var(--offset-y);
+  left: var(--offset-x);
+  width: var(--jar-width);
+  height: var(--jar-height);
+  z-index: 4;
+  -ms-interpolation-mode: nearest-neighbor;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -o-pixelated;
+      image-rendering: pixelated;
 }
 
 .grid-container {
   position: absolute;
-  margin-left: 47vh;
-  margin-top: 10vh;
+  left: var(--board-offset-x);
+  top: var(--board-offset-y);
   display: -ms-grid;
   display: grid;
   background-color: #000;
-  width: 40vh;
-  border: 10px solid #feffae;
-  -ms-grid-columns: 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh;
-      grid-template-columns: 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh;
-  -ms-grid-rows: 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh;
-      grid-template-rows: 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh;
+  -ms-grid-columns: (var(--tile-size))[8];
+      grid-template-columns: repeat(8, var(--tile-size));
+  -ms-grid-rows: (var(--tile-size))[16];
+      grid-template-rows: repeat(16, var(--tile-size));
 }
 
 .crt::before {
   content: " ";
   display: block;
+  width: var(--width);
   position: absolute;
   top: 0;
   left: 0;
@@ -62,8 +174,8 @@ body {
 
 .vignette {
   position: absolute;
-  width: 134vh;
   height: 100vh;
+  width: var(--width);
   margin: auto;
   background: radial-gradient(transparent 85%, black), -webkit-gradient(linear, left top, right top, from(black), color-stop(15%, transparent), color-stop(85%, transparent), to(black)), -webkit-gradient(linear, left top, left bottom, from(black), color-stop(5%, transparent), color-stop(95%, transparent), to(black));
   background: radial-gradient(transparent 85%, black), linear-gradient(90deg, black, transparent 15%, transparent 85%, black), linear-gradient(black, transparent 5%, transparent 95%, black);

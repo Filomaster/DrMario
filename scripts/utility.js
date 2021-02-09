@@ -26,10 +26,3 @@ let Utility = {
     console.log(_out);
   },
 };
-//prettier-ignore
-// let Debug = {
-//   log: (x) => { if(DEBUG) console.log(x)},
-//   info: (x) => { if(DEBUG) console.info(x)},
-//   warn: (x) => { if(DEBUG) console.warn(x)},
-//   error: (x) => { if(DEBUG) console.error(x)},
-// }

@@ -42,6 +42,7 @@ let Game = {
 
     player.setupBoard();
     // Game.InitBoard(1); // Filing whole Game.board with 0
+    Engine.DrawBackground(Game.EmulationMode, player);
     Engine.InitBoard(player.board, BOARD); // Creating game board in the document
   },
   //
@@ -161,6 +162,7 @@ let Game = {
   },
   StopShift: (_player, _state = Data.State.movement) => {
     if (Game.EmulationMode == Data.EmulationMode.ATARI && _state == Data.State.movement) return;
+    if (_player.state != Data.State.shifting) return;
     // BUG: Gravity in NES after shifting is canceled
     clearInterval(_player.getInterval());
     _player.state = _state;
@@ -292,6 +294,8 @@ let Game = {
           if (_player.board.filter(Utility.getVirusesCount) == 0) {
             _player.setVirusLevel(_player.getVirusLevel() + 1);
             _player.setupBoard();
+            if (Game.EmulationMode == Data.EmulationMode.ATARI)
+              Engine.ChengeBackground(_player.getVirusLevel() % 5);
           }
           if (_player.state == Data.State.movement) {
             clearInterval(_player.getInterval());
