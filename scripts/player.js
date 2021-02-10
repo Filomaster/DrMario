@@ -8,8 +8,8 @@ class Player {
     this.pill = { l: 0, r: 0, y: 0, rotation: 0 }; //TODO: It might be not the best option
     this.isGrounded = true; //! idk if this is the best idea
     // Pseudo private variables
-    let _referenceSpeedLvl = Data.SpeedLevel.LOW;
-    let _speedLvl = Data.SpeedLevel.LOW;
+    let _referenceSpeedLvl = Data.SpeedLevel.MED;
+    let _speedLvl = Data.SpeedLevel.MED;
     let _virusLvl = 0;
     let _pillCounter = 0;
     let _score = 0;

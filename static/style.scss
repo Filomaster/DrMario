@@ -19,21 +19,67 @@ body {
 :root {
   --width: 134vh;
   --height: 100vh;
-  --jar-width: 0;
+  --jar-width: 12;
   --jar-height: 0;
   --left-decoration-width: 0;
   --scoreboard-height: 0;
   --info-width: 0;
+  --glass-width: 0;
   --glass-height: 0;
   --tiles-width: 40;
   --tiles-height: 24;
+  --dr-bcg-size: 0;
+  --dr-bcg-offset: 0;
   --board-offset-x: 0;
   --board-offset-y: 0;
   --offset-x: 16vh;
   --offset-y: 6vh;
   --tile-size: 10px;
+  --bcg-tile-size: 10px;
+  // Background colors
   --background-tile-a: #d6d6d6;
   --background-tile-b: transparent;
+
+  // Background images
+  --jar-img: 0;
+  --jar-mask: 0;
+  --glass-img: 0;
+  --info-img: 0;
+  --dr-bcg-img: 0;
+  --scoreboard-img: 0;
+  // Sprites
+  // > Pills
+  //   > Yellow
+  --yl-left: 0;
+  --yl-right: 0;
+  --yl-up: 0;
+  --yl-down: 0;
+  --yl-dot: 0;
+  --yl-o: 0;
+  //   > Red
+  --rd-left: 0;
+  --rd-right: 0;
+  --rd-up: 0;
+  --rd-down: 0;
+  --rd-dot: 0;
+  --rd-o: 0;
+  //   > Blue
+  --bl-left: 0;
+  --bl-right: 0;
+  --bl-up: 0;
+  --bl-down: 0;
+  --bl-dot: 0;
+  --bl-o: 0;
+  // > Viruses
+  //   > Yellow
+  --yl-x: 0;
+  --yl-virus: 0;
+  //   > Red
+  --rd-x: 0;
+  --rd-virus: 0;
+  //   > Blue
+  --bl-x: 0;
+  --bl-virus: 0;
 }
 
 .background {
@@ -46,30 +92,42 @@ body {
   position: absolute;
   width: var(--width);
   display: grid;
-  grid-template-columns: repeat(var(--tiles-width), var(--tile-size));
-  grid-auto-rows: minmax(var(--tile-size), auto);
+  grid-template-columns: repeat(var(--tiles-width), var(--bcg-tile-size));
+  grid-auto-rows: minmax(var(--bcg-tile-size), auto);
 }
 
-.scoreboard {
+.info {
   position: absolute;
   width: var(--info-width);
   height: var(--left-decoration-width);
   right: var(--tile-size);
   bottom: 0;
   background-position: center;
-  background-image: url("/images/infoboard.png");
+  background-image: var(--info-img);
   background-repeat: no-repeat;
   background-size: var(--info-width) var(--left-decoration-width);
   image-rendering: pixelated;
 }
-.info {
+.dr-bcg {
+  position: absolute;
+  width: var(--dr-bcg-size);
+  height: var(--dr-bcg-size);
+  right: var(--dr-bcg-offset);
+  top: var(--dr-bcg-offset);
+  background-image: var(--dr-bcg-img);
+  background-repeat: no-repeat;
+  background-size: var(--dr-bcg-size) var(--dr-bcg-size);
+  image-rendering: pixelated;
+}
+
+.scoreboard {
   position: absolute;
   width: var(--left-decoration-width);
   height: var(--scoreboard-height);
   left: var(--tile-size);
   top: var(--tile-size);
   background-position: center;
-  background-image: url("/images/scoreboard.png");
+  background-image: var(--scoreboard-img);
   background-repeat: no-repeat;
   background-size: var(--left-decoration-width) var(--scoreboard-height);
   image-rendering: pixelated;
@@ -82,7 +140,7 @@ body {
   left: var(--tile-size);
   bottom: 0;
   background-position: center;
-  background-image: url("/images/glass.png");
+  background-image: var(--glass-img);
   background-repeat: no-repeat;
   background-size: var(--left-decoration-width) var(--glass-height);
   image-rendering: pixelated;
@@ -90,36 +148,32 @@ body {
 
 .jar {
   position: absolute;
-  top: var(--offset-y);
+  bottom: var(--offset-y);
   left: var(--offset-x);
   width: var(--jar-width);
   height: var(--jar-height);
-  background-image: url("/images/jar.png");
+  background-image: var(--jar-img);
   background-repeat: no-repeat;
   background-size: var(--jar-width) var(--jar-height);
   image-rendering: pixelated;
-  mask: url("/images/jar-mask.png"), var(--background-tile-a);
-  mask-size: var(--jar-width) var(--jar-height);
 }
 .jar-mask {
   position: absolute;
-  top: var(--offset-y);
+  bottom: var(--offset-y);
   left: var(--offset-x);
   width: var(--jar-width);
   height: var(--jar-height);
-
-  z-index: 4;
-
+  background-color: var(--background-tile-a);
+  mask: var(--jar-mask);
+  mask-size: var(--jar-width) var(--jar-height);
   image-rendering: pixelated;
 }
 
 .grid-container {
   position: absolute;
   left: var(--board-offset-x);
-  top: var(--board-offset-y);
+  bottom: var(--board-offset-y);
   display: grid;
-  background-color: #000;
-  // border: 10px solid rgb(254, 255, 174);
 
   grid-template-columns: repeat(8, var(--tile-size));
   grid-template-rows: repeat(16, var(--tile-size));
@@ -161,9 +215,9 @@ body {
   height: 100vh;
   width: var(--width);
   margin: auto;
-  background: radial-gradient(transparent 85%, black),
-    linear-gradient(90deg, black, transparent 15%, transparent 85%, black),
-    linear-gradient(black, transparent 5%, transparent 95%, black);
+  background: radial-gradient(transparent 85%, #000000bb),
+    linear-gradient(90deg, #000000bb, transparent 15%, transparent 85%, #000000bb),
+    linear-gradient(#000000bb, transparent 5%, transparent 95%, #000000bb);
   background-blend-mode: multiply;
   z-index: 4;
 }
@@ -175,42 +229,42 @@ body {
   image-rendering: pixelated;
   &.virus{
     &.yellow { 
-      background-image: url("/images/sprites/viruses/yellow_new.png"); 
-      &.clear{background-image: url("/images/sprites/viruses/yl_x.png")}
+      background-image: var(--yl-virus); 
+      &.clear{background-image: var(--yl-x)}
     }
     &.red { 
-      background-image: url("/images/sprites/viruses/virus_red.png");
-      &.clear{background-image: url("/images/sprites/viruses/br_x.png")}
+      background-image: var(--rd-virus);
+      &.clear{background-image: var(--rd-x)}
     }
     &.blue { 
-      background-image: url("/images/sprites/viruses/virus_blue.png"); 
-      &.clear{background-image: url("/images/sprites/viruses/bl_x.png")}
+      background-image: var(--bl-virus); 
+      &.clear{background-image: var(--bl-x)}
     }
   }
   &.pill{
     &.yellow {
-      &.single { background-image: url("/images/sprites/pills/yl_dot.png") }
-      &.up { background-image: url("/images/sprites/pills/yl_up.png")  }
-      &.down { background-image: url("/images/sprites/pills/yl_down.png") }
-      &.left { background-image: url("/images/sprites/pills/yl_left.png") }
-      &.right { background-image: url("/images/sprites/pills/yl_right.png") }
-      &.clear { background-image: url("/images/sprites/pills/yl_o.png") }
+      &.single { background-image: var(--yl-dot) }
+      &.up { background-image: var(--yl-up)  }
+      &.down { background-image: var(--yl-down) }
+      &.left { background-image: var(--yl-left) }
+      &.right { background-image: var(--yl-right) }
+      &.clear { background-image: var(--yl-o) }
     }
     &.red { 
-      &.single { background-image: url("/images/sprites/pills/br_dot.png") }
-      &.up { background-image: url("/images/sprites/pills/br_up.png")  }
-      &.down { background-image: url("/images/sprites/pills/br_down.png") }
-      &.left { background-image: url("/images/sprites/pills/br_left.png") }
-      &.right { background-image: url("/images/sprites/pills/br_right.png") }
-      &.clear { background-image: url("/images/sprites/pills/br_o.png") }
+      &.single { background-image: var(--rd-dot) }
+      &.up { background-image: var(--rd-up)  }
+      &.down { background-image: var(--rd-down) }
+      &.left { background-image: var(--rd-left) }
+      &.right { background-image: var(--rd-right) }
+      &.clear { background-image: var(--rd-o) }
     }
     &.blue { 
-      &.single { background-image: url("/images/sprites/pills/bl_dot.png") }
-      &.up { background-image: url("/images/sprites/pills/bl_up.png")  }
-      &.down { background-image: url("/images/sprites/pills/bl_down.png") }
-      &.left { background-image: url("/images/sprites/pills/bl_left.png") }
-      &.right { background-image: url("/images/sprites/pills/bl_right.png") }
-      &.clear { background-image: url("/images/sprites/pills/bl_o.png") }
+      &.single { background-image: var(--bl-dot) }
+      &.up { background-image: var(--bl-up)  }
+      &.down { background-image: var(--bl-down) }
+      &.left { background-image: var(--bl-left) }
+      &.right { background-image: var(--bl-right) }
+      &.clear { background-image: var(--bl-o) }
     }
   }
 }

@@ -10,7 +10,7 @@
 
 let player; // !temporary player. Modify when creating multiplayer mode
 let Game = {
-  EmulationMode: Data.EmulationMode.ATARI,
+  EmulationMode: Data.EmulationMode.GB,
   // Initializing boards for players. Player number is passed as an argument
   InitBoard: (playerCount) => {
     for (let i = 0; i < player.board.length; i++) {

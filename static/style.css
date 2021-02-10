@@ -8,21 +8,55 @@ body {
 :root {
   --width: 134vh;
   --height: 100vh;
-  --jar-width: 0;
+  --jar-width: 12;
   --jar-height: 0;
   --left-decoration-width: 0;
   --scoreboard-height: 0;
   --info-width: 0;
+  --glass-width: 0;
   --glass-height: 0;
   --tiles-width: 40;
   --tiles-height: 24;
+  --dr-bcg-size: 0;
+  --dr-bcg-offset: 0;
   --board-offset-x: 0;
   --board-offset-y: 0;
   --offset-x: 16vh;
   --offset-y: 6vh;
   --tile-size: 10px;
+  --bcg-tile-size: 10px;
   --background-tile-a: #d6d6d6;
   --background-tile-b: transparent;
+  --jar-img: 0;
+  --jar-mask: 0;
+  --glass-img: 0;
+  --info-img: 0;
+  --dr-bcg-img: 0;
+  --scoreboard-img: 0;
+  --yl-left: 0;
+  --yl-right: 0;
+  --yl-up: 0;
+  --yl-down: 0;
+  --yl-dot: 0;
+  --yl-o: 0;
+  --rd-left: 0;
+  --rd-right: 0;
+  --rd-up: 0;
+  --rd-down: 0;
+  --rd-dot: 0;
+  --rd-o: 0;
+  --bl-left: 0;
+  --bl-right: 0;
+  --bl-up: 0;
+  --bl-down: 0;
+  --bl-dot: 0;
+  --bl-o: 0;
+  --yl-x: 0;
+  --yl-virus: 0;
+  --rd-x: 0;
+  --rd-virus: 0;
+  --bl-x: 0;
+  --bl-virus: 0;
 }
 
 .background {
@@ -37,19 +71,19 @@ body {
   width: var(--width);
   display: -ms-grid;
   display: grid;
-  -ms-grid-columns: (var(--tile-size))[var];
-      grid-template-columns: repeat(var(--tiles-width), var(--tile-size));
-  grid-auto-rows: minmax(var(--tile-size), auto);
+  -ms-grid-columns: (var(--bcg-tile-size))[var];
+      grid-template-columns: repeat(var(--tiles-width), var(--bcg-tile-size));
+  grid-auto-rows: minmax(var(--bcg-tile-size), auto);
 }
 
-.scoreboard {
+.info {
   position: absolute;
   width: var(--info-width);
   height: var(--left-decoration-width);
   right: var(--tile-size);
   bottom: 0;
   background-position: center;
-  background-image: url("/images/infoboard.png");
+  background-image: var(--info-img);
   background-repeat: no-repeat;
   background-size: var(--info-width) var(--left-decoration-width);
   -ms-interpolation-mode: nearest-neighbor;
@@ -59,14 +93,30 @@ body {
       image-rendering: pixelated;
 }
 
-.info {
+.dr-bcg {
+  position: absolute;
+  width: var(--dr-bcg-size);
+  height: var(--dr-bcg-size);
+  right: var(--dr-bcg-offset);
+  top: var(--dr-bcg-offset);
+  background-image: var(--dr-bcg-img);
+  background-repeat: no-repeat;
+  background-size: var(--dr-bcg-size) var(--dr-bcg-size);
+  -ms-interpolation-mode: nearest-neighbor;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -o-pixelated;
+      image-rendering: pixelated;
+}
+
+.scoreboard {
   position: absolute;
   width: var(--left-decoration-width);
   height: var(--scoreboard-height);
   left: var(--tile-size);
   top: var(--tile-size);
   background-position: center;
-  background-image: url("/images/scoreboard.png");
+  background-image: var(--scoreboard-img);
   background-repeat: no-repeat;
   background-size: var(--left-decoration-width) var(--scoreboard-height);
   -ms-interpolation-mode: nearest-neighbor;
@@ -83,7 +133,7 @@ body {
   left: var(--tile-size);
   bottom: 0;
   background-position: center;
-  background-image: url("/images/glass.png");
+  background-image: var(--glass-img);
   background-repeat: no-repeat;
   background-size: var(--left-decoration-width) var(--glass-height);
   -ms-interpolation-mode: nearest-neighbor;
@@ -95,11 +145,11 @@ body {
 
 .jar {
   position: absolute;
-  top: var(--offset-y);
+  bottom: var(--offset-y);
   left: var(--offset-x);
   width: var(--jar-width);
   height: var(--jar-height);
-  background-image: url("/images/jar.png");
+  background-image: var(--jar-img);
   background-repeat: no-repeat;
   background-size: var(--jar-width) var(--jar-height);
   -ms-interpolation-mode: nearest-neighbor;
@@ -107,19 +157,19 @@ body {
       image-rendering: -moz-crisp-edges;
       image-rendering: -o-pixelated;
       image-rendering: pixelated;
-  -webkit-mask: url("/images/jar-mask.png"), var(--background-tile-a);
-          mask: url("/images/jar-mask.png"), var(--background-tile-a);
-  -webkit-mask-size: var(--jar-width) var(--jar-height);
-          mask-size: var(--jar-width) var(--jar-height);
 }
 
 .jar-mask {
   position: absolute;
-  top: var(--offset-y);
+  bottom: var(--offset-y);
   left: var(--offset-x);
   width: var(--jar-width);
   height: var(--jar-height);
-  z-index: 4;
+  background-color: var(--background-tile-a);
+  -webkit-mask: var(--jar-mask);
+          mask: var(--jar-mask);
+  -webkit-mask-size: var(--jar-width) var(--jar-height);
+          mask-size: var(--jar-width) var(--jar-height);
   -ms-interpolation-mode: nearest-neighbor;
       image-rendering: -webkit-optimize-contrast;
       image-rendering: -moz-crisp-edges;
@@ -130,10 +180,9 @@ body {
 .grid-container {
   position: absolute;
   left: var(--board-offset-x);
-  top: var(--board-offset-y);
+  bottom: var(--board-offset-y);
   display: -ms-grid;
   display: grid;
-  background-color: #000;
   -ms-grid-columns: (var(--tile-size))[8];
       grid-template-columns: repeat(8, var(--tile-size));
   -ms-grid-rows: (var(--tile-size))[16];
@@ -177,8 +226,8 @@ body {
   height: 100vh;
   width: var(--width);
   margin: auto;
-  background: radial-gradient(transparent 85%, black), -webkit-gradient(linear, left top, right top, from(black), color-stop(15%, transparent), color-stop(85%, transparent), to(black)), -webkit-gradient(linear, left top, left bottom, from(black), color-stop(5%, transparent), color-stop(95%, transparent), to(black));
-  background: radial-gradient(transparent 85%, black), linear-gradient(90deg, black, transparent 15%, transparent 85%, black), linear-gradient(black, transparent 5%, transparent 95%, black);
+  background: radial-gradient(transparent 85%, #000000bb), -webkit-gradient(linear, left top, right top, from(#000000bb), color-stop(15%, transparent), color-stop(85%, transparent), to(#000000bb)), -webkit-gradient(linear, left top, left bottom, from(#000000bb), color-stop(5%, transparent), color-stop(95%, transparent), to(#000000bb));
+  background: radial-gradient(transparent 85%, #000000bb), linear-gradient(90deg, #000000bb, transparent 15%, transparent 85%, #000000bb), linear-gradient(#000000bb, transparent 5%, transparent 95%, #000000bb);
   background-blend-mode: multiply;
   z-index: 4;
 }
@@ -194,99 +243,99 @@ body {
 }
 
 .pixel-perfect.virus.yellow {
-  background-image: url("/images/sprites/viruses/yellow_new.png");
+  background-image: var(--yl-virus);
 }
 
 .pixel-perfect.virus.yellow.clear {
-  background-image: url("/images/sprites/viruses/yl_x.png");
+  background-image: var(--yl-x);
 }
 
 .pixel-perfect.virus.red {
-  background-image: url("/images/sprites/viruses/virus_red.png");
+  background-image: var(--rd-virus);
 }
 
 .pixel-perfect.virus.red.clear {
-  background-image: url("/images/sprites/viruses/br_x.png");
+  background-image: var(--rd-x);
 }
 
 .pixel-perfect.virus.blue {
-  background-image: url("/images/sprites/viruses/virus_blue.png");
+  background-image: var(--bl-virus);
 }
 
 .pixel-perfect.virus.blue.clear {
-  background-image: url("/images/sprites/viruses/bl_x.png");
+  background-image: var(--bl-x);
 }
 
 .pixel-perfect.pill.yellow.single {
-  background-image: url("/images/sprites/pills/yl_dot.png");
+  background-image: var(--yl-dot);
 }
 
 .pixel-perfect.pill.yellow.up {
-  background-image: url("/images/sprites/pills/yl_up.png");
+  background-image: var(--yl-up);
 }
 
 .pixel-perfect.pill.yellow.down {
-  background-image: url("/images/sprites/pills/yl_down.png");
+  background-image: var(--yl-down);
 }
 
 .pixel-perfect.pill.yellow.left {
-  background-image: url("/images/sprites/pills/yl_left.png");
+  background-image: var(--yl-left);
 }
 
 .pixel-perfect.pill.yellow.right {
-  background-image: url("/images/sprites/pills/yl_right.png");
+  background-image: var(--yl-right);
 }
 
 .pixel-perfect.pill.yellow.clear {
-  background-image: url("/images/sprites/pills/yl_o.png");
+  background-image: var(--yl-o);
 }
 
 .pixel-perfect.pill.red.single {
-  background-image: url("/images/sprites/pills/br_dot.png");
+  background-image: var(--rd-dot);
 }
 
 .pixel-perfect.pill.red.up {
-  background-image: url("/images/sprites/pills/br_up.png");
+  background-image: var(--rd-up);
 }
 
 .pixel-perfect.pill.red.down {
-  background-image: url("/images/sprites/pills/br_down.png");
+  background-image: var(--rd-down);
 }
 
 .pixel-perfect.pill.red.left {
-  background-image: url("/images/sprites/pills/br_left.png");
+  background-image: var(--rd-left);
 }
 
 .pixel-perfect.pill.red.right {
-  background-image: url("/images/sprites/pills/br_right.png");
+  background-image: var(--rd-right);
 }
 
 .pixel-perfect.pill.red.clear {
-  background-image: url("/images/sprites/pills/br_o.png");
+  background-image: var(--rd-o);
 }
 
 .pixel-perfect.pill.blue.single {
-  background-image: url("/images/sprites/pills/bl_dot.png");
+  background-image: var(--bl-dot);
 }
 
 .pixel-perfect.pill.blue.up {
-  background-image: url("/images/sprites/pills/bl_up.png");
+  background-image: var(--bl-up);
 }
 
 .pixel-perfect.pill.blue.down {
-  background-image: url("/images/sprites/pills/bl_down.png");
+  background-image: var(--bl-down);
 }
 
 .pixel-perfect.pill.blue.left {
-  background-image: url("/images/sprites/pills/bl_left.png");
+  background-image: var(--bl-left);
 }
 
 .pixel-perfect.pill.blue.right {
-  background-image: url("/images/sprites/pills/bl_right.png");
+  background-image: var(--bl-right);
 }
 
 .pixel-perfect.pill.blue.clear {
-  background-image: url("/images/sprites/pills/bl_o.png");
+  background-image: var(--bl-o);
 }
 
 .error {
