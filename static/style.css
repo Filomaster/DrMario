@@ -85,6 +85,21 @@ body {
   left: var(--scores-x);
 }
 
+.top-score {
+  position: absolute;
+  display: -ms-grid;
+  display: grid;
+  -ms-grid-columns: (var(--tile-size))[7];
+      grid-template-columns: repeat(7, var(--tile-size));
+  -ms-interpolation-mode: nearest-neighbor;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -o-pixelated;
+      image-rendering: pixelated;
+  top: var(--t-score-y);
+  left: var(--scores-x);
+}
+
 .virus-info {
   position: absolute;
   height: var(--tile-size);

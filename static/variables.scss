@@ -7,12 +7,15 @@
 :root {
   --width: 134vh;
   --height: 100vh;
-  --jar-width: 12;
-  --jar-height: 0;
   --tiles-width: 40;
   --tiles-height: 24;
+
+  --jar-width: 12;
+  --jar-height: 0;
+
   --board-offset-x: 0;
   --board-offset-y: 0;
+
   --offset-x: 16vh;
   --offset-y: 6vh;
   --tile-size: 10px;
@@ -25,8 +28,8 @@
   --virus-bottom: 0;
   --lvl-bottom: 0;
   // Background colors
-  --background-tile-a: #d6d6d6;
-  --background-tile-b: transparent;
+  --background-tile-a: #ff00ff;
+  --background-tile-b: #000000;
 
   // Background images
   --bcg-img: 0;

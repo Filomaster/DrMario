@@ -10,7 +10,8 @@
 
 let player; // !temporary player. Modify when creating multiplayer mode
 let Game = {
-  EmulationMode: Data.EmulationMode.GB,
+  EmulationMode: Data.EmulationMode.ATARI,
+  TopScore: "0", // Global top score. It's used only in singleplayer mode anyway, so I won't be moving it to the player class
   // Initializing boards for players. Player number is passed as an argument
   InitBoard: (playerCount) => {
     for (let i = 0; i < player.board.length; i++) {
@@ -25,6 +26,16 @@ let Game = {
   },
   // Initializing all things needed for game
   Setup: () => {
+    // Load top score and set emulation mode from local storage. If storage is empty populate it with default values
+    if (localStorage.length == 0) {
+      localStorage.setItem("top", 0);
+      localStorage.setItem("mode", Data.EmulationMode.ATARI);
+    } else {
+      Engine.Input.LoadBinding();
+      Game.TopScore = localStorage.getItem("top");
+      Game.EmulationMode = parseInt(localStorage.getItem("mode"));
+    }
+
     // TODO: Add 2 players mode
     player = new Player();
 
@@ -90,6 +101,7 @@ let Game = {
   // This method rotates player pill
   Rotate: (_player, rotation) => {
     if (_player.state != Data.State.movement) return; // Rotating only when player can interact with pill
+    if (_player.pill.y == 0) return; // !For now - prevent rotation in first row, that cause bug
     let _ro = _player.pill.rotation; // Saving old rotation value, to check if color swap will be needed
     // Modifying values to keep consistent 0*, 90*, 180* and 270* rotation values
     if (_player.pill.rotation + rotation >= 360) _player.pill.rotation = 0;
@@ -226,7 +238,7 @@ let Game = {
         Engine.Render(board);
       });
       _player.incrementScore(viruses);
-      Engine.WriteScore(_player);
+      Engine.WriteInfo(_player);
       return true;
     }
     return false;
@@ -294,7 +306,7 @@ let Game = {
           if (_player.getVirusCount() == 0) {
             _player.setVirusLevel(_player.getVirusLevel() + 1);
             _player.setupBoard();
-            Engine.WriteScore(_player);
+            Engine.WriteInfo(_player);
             if (Game.EmulationMode == Data.EmulationMode.ATARI)
               Engine.ChangeBackground(_player.getVirusLevel() % 5);
           }
@@ -351,6 +363,8 @@ let Game = {
           break;
         case Data.State.lose:
           console.log("you lost");
+          if (_player.getScore() > parseInt(Game.TopScore))
+            localStorage.setItem("top", _player.getScore());
           clearInterval(player.getInterval());
           break;
       }

@@ -6,6 +6,7 @@ let BACKGROUND = document.getElementById("background-fill");
 let ROOT = document.documentElement;
 // Elements related to displaying player data
 const SCORE = document.getElementById("score");
+const T_SCORE = document.getElementById("top-score");
 const LVL = document.getElementById("lvl");
 const SPEED = document.getElementById("speed");
 const VIRUS = document.getElementById("virus");
@@ -25,60 +26,128 @@ let Engine = {
       shift_down: ["s", "arrowdown"],
       pause: ["escape", "backspace"],
     },
-    // This method handle all one-time inputs in the game
-    GetKey: (
+    // Setting keys corresponding to certain actions
+    SetBinding: function (binding, variant, key) {
+      this.Binding[binding][variant] = key;
+      for (const [_key, _value] of Object.entries(this.Binding)) {
+        for (let i = 0; i < 2; i++)
+          if (_key != binding && _value[i] == key) this.Binding[_key][i] = "";
+      }
+      this.SaveBinding();
+      return this.Binding;
+    },
+    // Returns current binding
+    GetBinding: function () {
+      return this.Binding;
+    },
+    // Saving key binding to the local storage
+    SaveBinding: function () {
+      for (const [_key, _value] of Object.entries(this.Binding)) {
+        for (let i = 0; i < 2; i++) localStorage.setItem(_key + "_" + i, _value[i]);
+      }
+    },
+    // Loading key binding from local storage
+    LoadBinding: function () {
+      for (const [_key, _value] of Object.entries(localStorage)) {
+        if (this.Binding.hasOwnProperty(_key.slice(0, _key.length - 2)))
+          this.Binding[_key.slice(0, _key.length - 2)][parseInt(_key[_key.length - 1])] = _value;
+      }
+    },
+    // Resetting keybinding to default values
+    ResetBinding: function () {
+      this.Binding.left = ["a", "arrowleft"];
+      this.Binding.right = ["d", "arrowright"];
+      this.Binding.rotate_left = ["w", "arrowup"];
+      this.Binding.rotate_right = ["shift", "shift"];
+      this.Binding.shift_down = ["s", "arrowdown"];
+      this.Binding.pause = ["escape", "backspace"];
+      this.SaveBinding;
+      return this.Binding;
+    },
+    // This method handle all inputs in the game
+    GetKey: function (
       e, // passed event
-      cb_move, // callback for left key
-      cb_rotate, // callback for rotate left
-      player_one,
-      player_two = player_one // alternative callback for
-    ) => {
+      cb_move, // callback for moving (left and right keys)
+      cb_rotate, // callback for rotating (left or right)
+      player_one, // default player for all bindings
+      player_two = player_one // if game is in multiplayer mode, alternative keybinding will be interpreted as second player
+    ) {
       switch (e.key.toLowerCase()) {
-        case Engine.Input.Binding.left[0]:
+        case this.Binding.left[0]:
           cb_move(player_one, -1);
           break;
-        case Engine.Input.Binding.left[1]:
+        case this.Binding.left[1]:
           cb_move(player_two, -1);
           break;
-        case Engine.Input.Binding.right[0]:
+        case this.Binding.right[0]:
           cb_move(player_one, 1);
           break;
-        case Engine.Input.Binding.right[1]:
+        case this.Binding.right[1]:
           cb_move(player_two, 1);
           break;
-        case Engine.Input.Binding.rotate_left[0]:
+        case this.Binding.rotate_left[0]:
           cb_rotate(player_one, -90);
           break;
-        case Engine.Input.Binding.rotate_left[1]:
+        case this.Binding.rotate_left[1]:
           cb_rotate(player_two, -90);
           break;
-        case Engine.Input.Binding.rotate_right[0]:
+        case this.Binding.rotate_right[0]:
           cb_rotate(player_one, 90);
           break;
-        case Engine.Input.Binding.rotate_right[1]:
+        case this.Binding.rotate_right[1]:
           cb_rotate(player_two, 90);
           break;
-        case Engine.Input.Binding.pause[0]:
-        case Engine.Input.Binding.pause[1]:
+        case this.Binding.pause[0]:
+        case this.Binding.pause[1]:
           console.log("pause");
           break;
       }
     },
-    GetKeyOnce: (e, cb_shift, player_one, player_two = player_one) => {
+    // This function handle actions that must be executed once
+    GetKeyOnce: function (e, cb_shift, player_one, player_two = player_one) {
       switch (e.key.toLowerCase()) {
-        case Engine.Input.Binding.shift_down[0]:
+        case this.Binding.shift_down[0]:
           cb_shift(player_one);
           break;
-        case Engine.Input.Binding.shift_down[1]:
+        case this.Binding.shift_down[1]:
           cb_shift(player_two);
           break;
       }
     },
   },
 
-  Graphic: {
+  Resources: {
     digits: new Array(10), // All digits numbers
     speedIndicators: new Array(3), // All speed values displayed in game
+    // Loading all resources like sprites and
+    Load: function (mode_string) {
+      // Loading graphic
+      // Loading all graphics path to CSS variables
+      let _path = `url("/images/${mode_string}/`;
+      // > Setting background images path in the CSS variables
+      ROOT.style.setProperty("--bcg-img", _path + 'bcg/bcg.png")');
+      ROOT.style.setProperty("--jar-img", _path + 'bcg/jar.png")');
+      ROOT.style.setProperty("--jar-mask", _path + 'bcg/jar-mask.png")');
+      // > Pills and virus sprites
+      let _sprites = ["virus", "x", "left", "right", "up", "down", "dot", "o"];
+      let _colors = ["yl", "rd", "bl"];
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < _sprites.length; j++) {
+          let _src = j < 2 ? "viruses/" : "pills/";
+          let _property = "--" + _colors[i] + "-" + _sprites[j];
+          let _name = _colors[i] + "_" + _sprites[j];
+          // Setting pill/virus sprite path as
+          ROOT.style.setProperty(_property, _path + "sprites/" + _src + _name + '.png")');
+        }
+      }
+      // Loading sprites url to arrays
+      // > Digit sprites
+      for (let i = 0; i < 10; i++) this.digits[i] = _path + "digits/" + i + '.png")';
+      // > Speed level sprites
+      for (let i = 0; i < 3; i++) this.speedIndicators[i] = +_path + "info/sp_" + i + '.png")';
+
+      // Loading sounds
+    },
   },
   // Filling up div on the page with empty divs
   InitBoard: (board, parent) => {
@@ -93,38 +162,9 @@ let Engine = {
     console.log(color_a);
     ROOT.style.setProperty("--background-tile-a", Data.ColorsATARI.bcg[color_a]);
   },
-  // This method loads all graphics used in
-  LoadSprites: (mode_string) => {
-    let _path = `url("/images/${mode_string}/`;
-    // Loading background images
-    let _bcgPath = _path + "bcg/";
-    ROOT.style.setProperty("--bcg-img", _bcgPath + 'bcg.png")');
-    ROOT.style.setProperty("--jar-img", _bcgPath + 'jar.png")');
-    ROOT.style.setProperty("--jar-mask", _bcgPath + 'jar-mask.png")');
-
-    // Loading sprites
-    let sprites = ["virus", "x", "left", "right", "up", "down", "dot", "o"];
-    let colors = ["yl", "rd", "bl"];
-    for (let i = 0; i < 3; i++) {
-      for (let j = 0; j < sprites.length; j++) {
-        let _src = j < 2 ? "viruses/" : "pills/";
-        let _property = "--" + colors[i] + "-" + sprites[j];
-        let _name = colors[i] + "_" + sprites[j];
-        ROOT.style.setProperty(_property, _path + "sprites/" + _src + _name + '.png")');
-      }
-    }
-    // Loading digits
-    for (let i = 0; i < 10; i++) {
-      Engine.Graphic.digits[i] = _path + "digits/" + i + '.png")';
-    }
-    //  Loading speed indicators
-    for (let i = 0; i < 3; i++) {
-      Engine.Graphic.speedIndicators[i] = "info/sp_" + i + '.png")';
-    }
-  },
   // As name suggest this method is responsible for writing score and top score into the scoreboard
-  WriteScore: (_player) => {
-    // ! As well I can write all info at once, why not?
+  WriteInfo: (_player) => {
+    // TODO: You repeat the nearly identical for loop 4 times. Just make it one method, won't ya?
     // Those two lines bit hacky and are by no mean optimal, but this way of separating digits is super easy;
     let _score_str = _player.getScore().toString(); // First I convert number to string
     for (let i = _score_str.length; i < 7; i++) _score_str = "0" + _score_str; // Then iterate through all characters (digits in this case)
@@ -132,11 +172,27 @@ let Engine = {
       if (SCORE.childNodes.length < 7) {
         let digit = document.createElement("div");
         digit.style = `height: var(--tile-size); width: var(--tile-size); background-image: ${
-          Engine.Graphic.digits[parseInt(_score_str[i])]
+          Engine.Resources.digits[parseInt(_score_str[i])]
         }; background-size: 100%;`;
         SCORE.append(digit);
       } else {
-        SCORE.childNodes[i].style.backgroundImage = Engine.Graphic.digits[parseInt(_score_str[i])];
+        SCORE.childNodes[i].style.backgroundImage =
+          Engine.Resources.digits[parseInt(_score_str[i])];
+      }
+    }
+    // Those two lines bit hacky and are by no mean optimal, but this way of separating digits is super easy;
+    let _t_score_str = Game.TopScore; // First I convert number to string
+    for (let i = _t_score_str.length; i < 7; i++) _t_score_str = "0" + _t_score_str; // Then iterate through all characters (digits in this case)
+    for (let i = 0; i < _t_score_str.length; i++) {
+      if (T_SCORE.childNodes.length < 7) {
+        let digit = document.createElement("div");
+        digit.style = `height: var(--tile-size); width: var(--tile-size); background-image: ${
+          Engine.Resources.digits[parseInt(_t_score_str[i])]
+        }; background-size: 100%;`;
+        T_SCORE.append(digit);
+      } else {
+        T_SCORE.childNodes[i].style.backgroundImage =
+          Engine.Resources.digits[parseInt(_t_score_str[i])];
       }
     }
 
@@ -145,11 +201,11 @@ let Engine = {
       if (VIRUS.childNodes.length < 2) {
         let digit = document.createElement("div");
         digit.style = `height: var(--tile-size); width: var(--tile-size); background-image: ${
-          Engine.Graphic.digits[parseInt(_viruses[i])]
+          Engine.Resources.digits[parseInt(_viruses[i])]
         }; background-size: 100%;`;
         VIRUS.append(digit);
       } else {
-        VIRUS.childNodes[i].style.backgroundImage = Engine.Graphic.digits[parseInt(_viruses[i])];
+        VIRUS.childNodes[i].style.backgroundImage = Engine.Resources.digits[parseInt(_viruses[i])];
       }
     }
 
@@ -158,16 +214,17 @@ let Engine = {
       if (LVL.childNodes.length < 2) {
         let digit = document.createElement("div");
         digit.style = `height: var(--tile-size); width: var(--tile-size); background-image: ${
-          Engine.Graphic.digits[parseInt(_level[i])]
+          Engine.Resources.digits[parseInt(_level[i])]
         }; background-size: 100%;`;
         LVL.append(digit);
       } else {
-        LVL.childNodes[i].style.backgroundImage = Engine.Graphic.digits[parseInt(_level[i])];
+        LVL.childNodes[i].style.backgroundImage = Engine.Resources.digits[parseInt(_level[i])];
       }
     }
   },
 
   DrawBackground: (mode, _player) => {
+    T_SCORE.style.display = "grid";
     let screen,
       color_a,
       color_b,
@@ -189,13 +246,14 @@ let Engine = {
     color_b = "000";
     switch (mode) {
       case Data.EmulationMode.ATARI:
-        Engine.LoadSprites("ATARI");
+        Engine.Resources.Load("ATARI");
         screen = Data.ScreenSize.ATARI;
         color_a = Data.ColorsATARI.bcg[_player.getVirusLevel() % 5];
         offset_x = 15;
         offset_y = 1;
         scores_x = 5;
         score_y = 8;
+        t_score_y = 5;
         jar_width = 12;
         jar_height = 21;
         board_offset_x = 2;
@@ -206,9 +264,8 @@ let Engine = {
         left_decoration_width = 13;
         break;
       case Data.EmulationMode.NES:
-        Engine.LoadSprites("NES");
+        Engine.Resources.Load("NES");
         screen = Data.ScreenSize.NES;
-        console.log(player.getSpeedLevel());
         color_a =
           _player.getSpeedLevel().name == "LOW"
             ? Data.ColorsNES.bcg[0]
@@ -225,12 +282,14 @@ let Engine = {
         offset_y = 3;
         offset_x = 11;
         scores_x = 2;
+        t_score_y = 8;
         score_y = 11;
         glass_size = 11;
         left_decoration_width = 10;
         break;
       case Data.EmulationMode.GB:
-        Engine.LoadSprites("GB");
+        Engine.Resources.Load("GB");
+        T_SCORE.style.display = "none";
         spritesMultiplier = 2;
         screen = Data.ScreenSize.GB;
         spritesMultiplier = 2;
@@ -248,6 +307,9 @@ let Engine = {
         color_a = "#606060";
         color_b = "#A8A8A8";
         break;
+      default:
+        console.log("Yo mate, what's wrong?");
+        break;
     }
     let tileSize = 100 / screen.h;
     ROOT.style.setProperty("--tile-size", tileSize + "vh");
@@ -255,6 +317,7 @@ let Engine = {
     ROOT.style.setProperty("--lvl-bottom", lvl_bot * tileSize + "vh");
     ROOT.style.setProperty("--info-right", info_right * tileSize + "vh");
     ROOT.style.setProperty("--score-y", score_y * tileSize + "vh");
+    ROOT.style.setProperty("--t-score-y", t_score_y * tileSize + "vh");
     ROOT.style.setProperty("--scores-x", scores_x * tileSize + "vh");
     ROOT.style.setProperty("--bcg-tile-size", tileSize / spritesMultiplier + "vh");
     ROOT.style.setProperty("--offset-x", offset_x * tileSize + "vh");
@@ -283,7 +346,7 @@ let Engine = {
         BACKGROUND.appendChild(tile);
       }
     }
-    Engine.WriteScore(_player);
+    Engine.WriteInfo(_player);
   },
   Render: (board) => {
     let _class;
