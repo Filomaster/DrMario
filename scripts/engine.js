@@ -2,8 +2,13 @@
 
 let BOARD = document.getElementById("board");
 let BACKGROUND = document.getElementById("background-fill");
+// All CSS variables are stored in root
 let ROOT = document.documentElement;
-
+// Elements related to displaying player data
+const SCORE = document.getElementById("score");
+const LVL = document.getElementById("lvl");
+const SPEED = document.getElementById("speed");
+const VIRUS = document.getElementById("virus");
 // This object handle all 'technical side' of the game
 // (basically anything that is not related to game data)
 let Engine = {
@@ -70,41 +75,34 @@ let Engine = {
       }
     },
   },
-  // TODO
+
   Graphic: {
-    StartMenu: null,
-    GameMenu: null,
-    OnePlayerSettings: null,
-    TwoPlayerSettings: null,
-    OnePlayerScreen: null,
-    TwoPlayersScreen: null,
+    digits: new Array(10), // All digits numbers
+    speedIndicators: new Array(3), // All speed values displayed in game
   },
   // Filling up div on the page with empty divs
   InitBoard: (board, parent) => {
     board.forEach((element, i) => {
       let field = document.createElement("div");
-      // if (DEBUG) field.style.border = "1px solid white";
       field.dataset.id = i;
       parent.append(field);
     });
   },
-  ChengeBackground: (color_a, color_b = "transparent") => {
+  // This method change colors of chessboard tiles in the background.
+  ChangeBackground: (color_a, color_b = "transparent") => {
     console.log(color_a);
     ROOT.style.setProperty("--background-tile-a", Data.ColorsATARI.bcg[color_a]);
   },
+  // This method loads all graphics used in
   LoadSprites: (mode_string) => {
     let _path = `url("/images/${mode_string}/`;
     // Loading background images
     let _bcgPath = _path + "bcg/";
+    ROOT.style.setProperty("--bcg-img", _bcgPath + 'bcg.png")');
     ROOT.style.setProperty("--jar-img", _bcgPath + 'jar.png")');
     ROOT.style.setProperty("--jar-mask", _bcgPath + 'jar-mask.png")');
-    ROOT.style.setProperty("--scoreboard-img", _bcgPath + 'scoreboard.png")');
-    ROOT.style.setProperty("--info-img", _bcgPath + 'infoboard.png")');
-    ROOT.style.setProperty("--glass-img", _bcgPath + 'glass.png")');
-    ROOT.style.setProperty("--dr-bcg-img", _bcgPath + 'mario-bcg.png")');
 
     // Loading sprites
-
     let sprites = ["virus", "x", "left", "right", "up", "down", "dot", "o"];
     let colors = ["yl", "rd", "bl"];
     for (let i = 0; i < 3; i++) {
@@ -115,7 +113,60 @@ let Engine = {
         ROOT.style.setProperty(_property, _path + "sprites/" + _src + _name + '.png")');
       }
     }
+    // Loading digits
+    for (let i = 0; i < 10; i++) {
+      Engine.Graphic.digits[i] = _path + "digits/" + i + '.png")';
+    }
+    //  Loading speed indicators
+    for (let i = 0; i < 3; i++) {
+      Engine.Graphic.speedIndicators[i] = "info/sp_" + i + '.png")';
+    }
   },
+  // As name suggest this method is responsible for writing score and top score into the scoreboard
+  WriteScore: (_player) => {
+    // ! As well I can write all info at once, why not?
+    // Those two lines bit hacky and are by no mean optimal, but this way of separating digits is super easy;
+    let _score_str = _player.getScore().toString(); // First I convert number to string
+    for (let i = _score_str.length; i < 7; i++) _score_str = "0" + _score_str; // Then iterate through all characters (digits in this case)
+    for (let i = 0; i < _score_str.length; i++) {
+      if (SCORE.childNodes.length < 7) {
+        let digit = document.createElement("div");
+        digit.style = `height: var(--tile-size); width: var(--tile-size); background-image: ${
+          Engine.Graphic.digits[parseInt(_score_str[i])]
+        }; background-size: 100%;`;
+        SCORE.append(digit);
+      } else {
+        SCORE.childNodes[i].style.backgroundImage = Engine.Graphic.digits[parseInt(_score_str[i])];
+      }
+    }
+
+    let _viruses = (player.getVirusCount() < 10 ? "0" : "") + player.getVirusCount();
+    for (let i = 0; i < _viruses.length; i++) {
+      if (VIRUS.childNodes.length < 2) {
+        let digit = document.createElement("div");
+        digit.style = `height: var(--tile-size); width: var(--tile-size); background-image: ${
+          Engine.Graphic.digits[parseInt(_viruses[i])]
+        }; background-size: 100%;`;
+        VIRUS.append(digit);
+      } else {
+        VIRUS.childNodes[i].style.backgroundImage = Engine.Graphic.digits[parseInt(_viruses[i])];
+      }
+    }
+
+    let _level = (player.getVirusLevel() < 10 ? "0" : "") + player.getVirusLevel();
+    for (let i = 0; i < _level.length; i++) {
+      if (LVL.childNodes.length < 2) {
+        let digit = document.createElement("div");
+        digit.style = `height: var(--tile-size); width: var(--tile-size); background-image: ${
+          Engine.Graphic.digits[parseInt(_level[i])]
+        }; background-size: 100%;`;
+        LVL.append(digit);
+      } else {
+        LVL.childNodes[i].style.backgroundImage = Engine.Graphic.digits[parseInt(_level[i])];
+      }
+    }
+  },
+
   DrawBackground: (mode, _player) => {
     let screen,
       color_a,
@@ -126,7 +177,13 @@ let Engine = {
       jar_height,
       glass_size,
       left_decoration_width,
-      board_offset_x;
+      board_offset_x,
+      scores_x,
+      score_y,
+      info_right,
+      lvl_bot,
+      vir_bot,
+      t_score_y;
 
     let spritesMultiplier = 1;
     color_b = "000";
@@ -137,10 +194,15 @@ let Engine = {
         color_a = Data.ColorsATARI.bcg[_player.getVirusLevel() % 5];
         offset_x = 15;
         offset_y = 1;
+        scores_x = 5;
+        score_y = 8;
         jar_width = 12;
         jar_height = 21;
         board_offset_x = 2;
+        info_right = 3;
         glass_size = 13;
+        vir_bot = 2;
+        lvl_bot = 8;
         left_decoration_width = 13;
         break;
       case Data.EmulationMode.NES:
@@ -156,9 +218,14 @@ let Engine = {
 
         jar_width = 10;
         jar_height = 22;
+        info_right = 3;
+        vir_bot = 4;
+        lvl_bot = 10;
         board_offset_x = 1;
         offset_y = 3;
         offset_x = 11;
+        scores_x = 2;
+        score_y = 11;
         glass_size = 11;
         left_decoration_width = 10;
         break;
@@ -168,10 +235,15 @@ let Engine = {
         screen = Data.ScreenSize.GB;
         spritesMultiplier = 2;
         board_offset_x = 1;
+        info_right = 1;
+        vir_bot = 4;
+        lvl_bot = 6;
         jar_width = 10;
         jar_height = 18;
         offset_x = 1;
         glass_size = 3;
+        scores_x = 12;
+        score_y = 2;
         left_decoration_width = 7;
         color_a = "#606060";
         color_b = "#A8A8A8";
@@ -179,6 +251,11 @@ let Engine = {
     }
     let tileSize = 100 / screen.h;
     ROOT.style.setProperty("--tile-size", tileSize + "vh");
+    ROOT.style.setProperty("--virus-bottom", vir_bot * tileSize + "vh");
+    ROOT.style.setProperty("--lvl-bottom", lvl_bot * tileSize + "vh");
+    ROOT.style.setProperty("--info-right", info_right * tileSize + "vh");
+    ROOT.style.setProperty("--score-y", score_y * tileSize + "vh");
+    ROOT.style.setProperty("--scores-x", scores_x * tileSize + "vh");
     ROOT.style.setProperty("--bcg-tile-size", tileSize / spritesMultiplier + "vh");
     ROOT.style.setProperty("--offset-x", offset_x * tileSize + "vh");
     ROOT.style.setProperty("--offset-y", offset_y * tileSize + "vh");
@@ -206,6 +283,7 @@ let Engine = {
         BACKGROUND.appendChild(tile);
       }
     }
+    Engine.WriteScore(_player);
   },
   Render: (board) => {
     let _class;

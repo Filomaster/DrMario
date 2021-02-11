@@ -8,8 +8,8 @@ class Player {
     this.pill = { l: 0, r: 0, y: 0, rotation: 0 }; //TODO: It might be not the best option
     this.isGrounded = true; //! idk if this is the best idea
     // Pseudo private variables
-    let _referenceSpeedLvl = Data.SpeedLevel.MED;
-    let _speedLvl = Data.SpeedLevel.MED;
+    let _referenceSpeedLvl = Data.SpeedLevel.LOW;
+    let _speedLvl = Data.SpeedLevel.LOW;
     let _virusLvl = 0;
     let _pillCounter = 0;
     let _score = 0;
@@ -22,6 +22,7 @@ class Player {
 
     // methods
     this.spawnPill = function () {
+      let _gameoverFlag = false;
       // if (DEBUG && _pillCounter % 10 != 0)
       //   console.log(10 - (_pillCounter % 10) + " pills to next speed lvl");
       if (_pillCounter % 10 == 0 && _pillCounter != 0) {
@@ -30,6 +31,8 @@ class Player {
           if (DEBUG) console.info(`SPEED UP! \n Current lvl: ${_speedLvl}`);
         }
       }
+      if (this.board[3] != Data.Field.empty && this.board[4] != Data.Field.empty)
+        _gameoverFlag = true;
       this.pill = { l: 3, r: 4, y: 0, rotation: 0 }; //TODO: Describe pill
       this.state = Data.State.movement;
       this.board[3] = _preGeneratedPills[_pillsIndex].l;
@@ -39,6 +42,7 @@ class Player {
       _pillsIndex = _pillsIndex >= 127 ? 0 : _pillsIndex + 1;
       _pillCounter++;
       this.isGrounded = false;
+      if (_gameoverFlag) this.state = Data.State.lose;
     };
     this.generatePills = () => {
       for (let i = 0; i < _preGeneratedPills.length; i++) {
@@ -159,7 +163,9 @@ class Player {
     this.getOrientation = function () {
       return this.pill.rotation == 0 || this.pill.rotation == 180 ? "horizontal" : "vertical";
     };
-
+    this.getVirusCount = function () {
+      return this.board.filter(Utility.getViruses).length;
+    };
     // Functions called in constructor
     this.generatePills(); // Generating pills after initializing array
   }

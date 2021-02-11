@@ -1,0 +1,68 @@
+// This file contains all variables used for dynamic styling game.
+// Someone could ask - why would I even need this? Well, managing all
+// emulations mode and making it flexible for possible browser scaling
+// without those variables will be really, really hard.
+// As long as we use only vanilla JavaScript ofc.
+
+:root {
+  --width: 134vh;
+  --height: 100vh;
+  --jar-width: 12;
+  --jar-height: 0;
+  --tiles-width: 40;
+  --tiles-height: 24;
+  --board-offset-x: 0;
+  --board-offset-y: 0;
+  --offset-x: 16vh;
+  --offset-y: 6vh;
+  --tile-size: 10px;
+  --bcg-tile-size: 10px;
+  // Scores and info offset
+  --scores-x: 0;
+  --score-y: 0;
+  --t-score-y: 0;
+  --info-right: 0;
+  --virus-bottom: 0;
+  --lvl-bottom: 0;
+  // Background colors
+  --background-tile-a: #d6d6d6;
+  --background-tile-b: transparent;
+
+  // Background images
+  --bcg-img: 0;
+  --jar-img: 0;
+  --jar-mask: 0;
+  // Sprites
+  // > Pills
+  //   > Yellow
+  --yl-left: 0;
+  --yl-right: 0;
+  --yl-up: 0;
+  --yl-down: 0;
+  --yl-dot: 0;
+  --yl-o: 0;
+  //   > Red
+  --rd-left: 0;
+  --rd-right: 0;
+  --rd-up: 0;
+  --rd-down: 0;
+  --rd-dot: 0;
+  --rd-o: 0;
+  //   > Blue
+  --bl-left: 0;
+  --bl-right: 0;
+  --bl-up: 0;
+  --bl-down: 0;
+  --bl-dot: 0;
+  --bl-o: 0;
+  // > Viruses
+  //   > Yellow
+  --yl-x: 0;
+  --yl-virus: 0;
+  //   > Red
+  --rd-x: 0;
+  --rd-virus: 0;
+  //   > Blue
+  --bl-x: 0;
+  --bl-virus: 0;
+}

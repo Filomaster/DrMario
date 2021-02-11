@@ -41,7 +41,6 @@ let Game = {
     });
 
     player.setupBoard();
-    // Game.InitBoard(1); // Filing whole Game.board with 0
     Engine.DrawBackground(Game.EmulationMode, player);
     Engine.InitBoard(player.board, BOARD); // Creating game board in the document
   },
@@ -158,15 +157,15 @@ let Game = {
     clearInterval(_player.getInterval());
     _player.state = Data.State.shifting;
     // let shiftSpeed = _player.gameSpeed > 100 ? 50 : _player.gameSpeed > 50 ? 25 : 1;
-    Game.Gravity(_player, 20);
+    Game.MainLoop(_player, 20);
   },
   StopShift: (_player, _state = Data.State.movement) => {
     if (Game.EmulationMode == Data.EmulationMode.ATARI && _state == Data.State.movement) return;
     if (_player.state != Data.State.shifting) return;
-    // BUG: Gravity in NES after shifting is canceled
+    // BUG: MainLoop in NES after shifting is canceled
     clearInterval(_player.getInterval());
     _player.state = _state;
-    Game.Gravity(_player);
+    Game.MainLoop(_player);
   },
 
   // This method check if two cells are the same color (one might be virus tho)
@@ -227,6 +226,7 @@ let Game = {
         Engine.Render(board);
       });
       _player.incrementScore(viruses);
+      Engine.WriteScore(_player);
       return true;
     }
     return false;
@@ -242,7 +242,7 @@ let Game = {
       return true;
     return false;
   },
-  Gravity: (_player, _speed = _player.getSpeed()) => {
+  MainLoop: (_player, _speed = _player.getSpeed()) => {
     let _interval = setInterval(() => {
       // Checking current game state
       switch (_player.state) {
@@ -280,7 +280,7 @@ let Game = {
             if ((_player.state = Data.State.shifting)) Game.StopShift(_player, Data.State.clear);
             _player.state = Data.State.clear; //After placing pill, we need to check if any cells can be cleared
             clearInterval(_player.getInterval());
-            Game.Gravity(_player, 50);
+            Game.MainLoop(_player, 50);
           }
           break;
         case Data.State.clear:
@@ -291,15 +291,16 @@ let Game = {
             BOARD.childNodes.forEach((node) => node.classList.remove("clear"));
             Engine.Render(_player.board);
           }, 100);
-          if (_player.board.filter(Utility.getVirusesCount) == 0) {
+          if (_player.getVirusCount() == 0) {
             _player.setVirusLevel(_player.getVirusLevel() + 1);
             _player.setupBoard();
+            Engine.WriteScore(_player);
             if (Game.EmulationMode == Data.EmulationMode.ATARI)
-              Engine.ChengeBackground(_player.getVirusLevel() % 5);
+              Engine.ChangeBackground(_player.getVirusLevel() % 5);
           }
           if (_player.state == Data.State.movement) {
             clearInterval(_player.getInterval());
-            Game.Gravity(_player);
+            Game.MainLoop(_player);
           }
           break;
         case Data.State.gravity:
@@ -345,6 +346,13 @@ let Game = {
             _player.state = Data.State.clear;
           }
           break;
+        case Data.State.win:
+          console.log("level clear");
+          break;
+        case Data.State.lose:
+          console.log("you lost");
+          clearInterval(player.getInterval());
+          break;
       }
       if (_player.state == Data.State.movement && _player.isGrounded) _player.spawnPill();
       Engine.Render(_player.board);
@@ -356,7 +364,7 @@ let Game = {
   Game1P: function () {
     player.spawnPill();
     Engine.Render(player.board);
-    this.Gravity(player);
+    this.MainLoop(player);
     setInterval(Game.CheckFocus, 300);
   },
   CheckFocus: function () {
@@ -364,7 +372,7 @@ let Game = {
       clearInterval(player.getInterval());
       player.setInterval(null);
     } else if (document.hasFocus() && player.getInterval() == null) {
-      Game.Gravity(player);
+      Game.MainLoop(player);
     }
   },
 };

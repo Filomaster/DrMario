@@ -5,60 +5,6 @@ body {
   padding: 0;
 }
 
-:root {
-  --width: 134vh;
-  --height: 100vh;
-  --jar-width: 12;
-  --jar-height: 0;
-  --left-decoration-width: 0;
-  --scoreboard-height: 0;
-  --info-width: 0;
-  --glass-width: 0;
-  --glass-height: 0;
-  --tiles-width: 40;
-  --tiles-height: 24;
-  --dr-bcg-size: 0;
-  --dr-bcg-offset: 0;
-  --board-offset-x: 0;
-  --board-offset-y: 0;
-  --offset-x: 16vh;
-  --offset-y: 6vh;
-  --tile-size: 10px;
-  --bcg-tile-size: 10px;
-  --background-tile-a: #d6d6d6;
-  --background-tile-b: transparent;
-  --jar-img: 0;
-  --jar-mask: 0;
-  --glass-img: 0;
-  --info-img: 0;
-  --dr-bcg-img: 0;
-  --scoreboard-img: 0;
-  --yl-left: 0;
-  --yl-right: 0;
-  --yl-up: 0;
-  --yl-down: 0;
-  --yl-dot: 0;
-  --yl-o: 0;
-  --rd-left: 0;
-  --rd-right: 0;
-  --rd-up: 0;
-  --rd-down: 0;
-  --rd-dot: 0;
-  --rd-o: 0;
-  --bl-left: 0;
-  --bl-right: 0;
-  --bl-up: 0;
-  --bl-down: 0;
-  --bl-dot: 0;
-  --bl-o: 0;
-  --yl-x: 0;
-  --yl-virus: 0;
-  --rd-x: 0;
-  --rd-virus: 0;
-  --bl-x: 0;
-  --bl-virus: 0;
-}
-
 .background {
   width: var(--width);
   height: 100vh;
@@ -76,66 +22,12 @@ body {
   grid-auto-rows: minmax(var(--bcg-tile-size), auto);
 }
 
-.info {
+.bcg-img {
   position: absolute;
-  width: var(--info-width);
-  height: var(--left-decoration-width);
-  right: var(--tile-size);
-  bottom: 0;
-  background-position: center;
-  background-image: var(--info-img);
-  background-repeat: no-repeat;
-  background-size: var(--info-width) var(--left-decoration-width);
-  -ms-interpolation-mode: nearest-neighbor;
-      image-rendering: -webkit-optimize-contrast;
-      image-rendering: -moz-crisp-edges;
-      image-rendering: -o-pixelated;
-      image-rendering: pixelated;
-}
-
-.dr-bcg {
-  position: absolute;
-  width: var(--dr-bcg-size);
-  height: var(--dr-bcg-size);
-  right: var(--dr-bcg-offset);
-  top: var(--dr-bcg-offset);
-  background-image: var(--dr-bcg-img);
-  background-repeat: no-repeat;
-  background-size: var(--dr-bcg-size) var(--dr-bcg-size);
-  -ms-interpolation-mode: nearest-neighbor;
-      image-rendering: -webkit-optimize-contrast;
-      image-rendering: -moz-crisp-edges;
-      image-rendering: -o-pixelated;
-      image-rendering: pixelated;
-}
-
-.scoreboard {
-  position: absolute;
-  width: var(--left-decoration-width);
-  height: var(--scoreboard-height);
-  left: var(--tile-size);
-  top: var(--tile-size);
-  background-position: center;
-  background-image: var(--scoreboard-img);
-  background-repeat: no-repeat;
-  background-size: var(--left-decoration-width) var(--scoreboard-height);
-  -ms-interpolation-mode: nearest-neighbor;
-      image-rendering: -webkit-optimize-contrast;
-      image-rendering: -moz-crisp-edges;
-      image-rendering: -o-pixelated;
-      image-rendering: pixelated;
-}
-
-.glass {
-  position: absolute;
-  width: var(--left-decoration-width);
-  height: var(--glass-height);
-  left: var(--tile-size);
-  bottom: 0;
-  background-position: center;
-  background-image: var(--glass-img);
-  background-repeat: no-repeat;
-  background-size: var(--left-decoration-width) var(--glass-height);
+  width: var(--width);
+  height: var(--height);
+  background-image: var(--bcg-img);
+  background-size: var(--width) var(--height);
   -ms-interpolation-mode: nearest-neighbor;
       image-rendering: -webkit-optimize-contrast;
       image-rendering: -moz-crisp-edges;
@@ -150,8 +42,8 @@ body {
   width: var(--jar-width);
   height: var(--jar-height);
   background-image: var(--jar-img);
-  background-repeat: no-repeat;
   background-size: var(--jar-width) var(--jar-height);
+  background-repeat: no-repeat;
   -ms-interpolation-mode: nearest-neighbor;
       image-rendering: -webkit-optimize-contrast;
       image-rendering: -moz-crisp-edges;
@@ -170,6 +62,54 @@ body {
           mask: var(--jar-mask);
   -webkit-mask-size: var(--jar-width) var(--jar-height);
           mask-size: var(--jar-width) var(--jar-height);
+  background-repeat: no-repeat;
+  -ms-interpolation-mode: nearest-neighbor;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -o-pixelated;
+      image-rendering: pixelated;
+}
+
+.score {
+  position: absolute;
+  display: -ms-grid;
+  display: grid;
+  -ms-grid-columns: (var(--tile-size))[7];
+      grid-template-columns: repeat(7, var(--tile-size));
+  -ms-interpolation-mode: nearest-neighbor;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -o-pixelated;
+      image-rendering: pixelated;
+  top: var(--score-y);
+  left: var(--scores-x);
+}
+
+.virus-info {
+  position: absolute;
+  height: var(--tile-size);
+  bottom: var(--virus-bottom);
+  right: var(--info-right);
+  display: -ms-grid;
+  display: grid;
+  -ms-grid-columns: (var(--tile-size))[2];
+      grid-template-columns: repeat(2, var(--tile-size));
+  -ms-interpolation-mode: nearest-neighbor;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -o-pixelated;
+      image-rendering: pixelated;
+}
+
+.lvl {
+  position: absolute;
+  height: var(--tile-size);
+  bottom: var(--lvl-bottom);
+  right: var(--info-right);
+  display: -ms-grid;
+  display: grid;
+  -ms-grid-columns: (var(--tile-size))[2];
+      grid-template-columns: repeat(2, var(--tile-size));
   -ms-interpolation-mode: nearest-neighbor;
       image-rendering: -webkit-optimize-contrast;
       image-rendering: -moz-crisp-edges;

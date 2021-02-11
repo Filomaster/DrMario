@@ -15,7 +15,7 @@ let Utility = {
   getUnique: (value, index, self) => {
     return self.indexOf(value) === index && value !== null;
   },
-  getVirusesCount: (value) => value > 10,
+  getViruses: (value) => value > 10,
 
   printBoard: (board) => {
     let _out = "";

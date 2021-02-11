@@ -7,9 +7,12 @@ let Data = {
   State: { movement: 0, clear: 1, gravity: 2, shifting: 3, win: 4, lose: 5, menu: 6 }, // Game state, for performance optimization in the main loop
   PlayerMode: { single: 1, multi: 2 }, // Possible game modes, based on original game
   EmulationMode: { ATARI: 0, NES: 1, GB: 2, GBC: 3 }, // Emulation mode. Some versions may have slightly different mechanics
-  ScreenSize: { ATARI: { w: 40, h: 24 }, NES: { w: 32, h: 28 }, GB: { w: 20, h: 18 } },
+  ScreenSize: { ATARI: { w: 40, h: 24 }, NES: { w: 32, h: 30 }, GB: { w: 20, h: 18 } },
   ColorsNES: { bcg: ["#005200", "#3900A5", "#808080"] },
   ColorsATARI: { bcg: ["#621C73", "#008267", "#ffb68c", "#837e85", "#123eb2"] },
+  // Css properties
+  // prettier-ignore
+  PropertyCSS: [], //! TODO
   // Tables needed for original game mechanics like setting speed or generating viruses
   SpeedLevel: { LOW: 15, MED: 25, HI: 31 },
   MaximumRow: [9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 10, 10, 11, 11, 12],
