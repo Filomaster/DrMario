@@ -266,7 +266,7 @@ let Game = {
       return true;
     return false;
   },
-  MainLoop: (_player, _speed = _player.getSpeed()) => {
+  MainLoop: function (_player, _speed = _player.getSpeed()) {
     let _interval = setInterval(() => {
       // Checking current game state
       switch (_player.state) {
@@ -316,11 +316,7 @@ let Game = {
             Engine.Render(_player.board);
           }, 100);
           if (_player.getVirusCount() == 0) {
-            _player.setVirusLevel(_player.getVirusLevel() + 1);
-            _player.setupBoard();
-            Engine.WriteInfo(_player);
-            if (Game.EmulationMode == Data.EmulationMode.ATARI)
-              Engine.ChangeBackground(_player.getVirusLevel() % 5);
+            _player.state = Data.State.win;
           }
           if (_player.state == Data.State.movement) {
             clearInterval(_player.getInterval());
@@ -371,19 +367,62 @@ let Game = {
           }
           break;
         case Data.State.win:
-          console.log("level clear");
+          let nextLvl = function () {
+            _player.setVirusLevel(_player.getVirusLevel() + 1);
+            _player.setupBoard();
+            Engine.WriteInfo(_player);
+            if (Game.EmulationMode == Data.EmulationMode.ATARI)
+              Engine.ChangeBackground(_player.getVirusLevel() % 5);
+            Game.Controls.Add();
+            setTimeout(() => {
+              Engine.ClearStatus();
+              Game.MainLoop(_player);
+            }, 20);
+            document.removeEventListener("keydown", nextLvl);
+          };
+
+          clearInterval(player.getInterval());
+          this.Controls.Remove();
+          Engine.ShowStatus("win", Game.EmulationMode); // Show win message
+          // Block player on win screen for at least one second
+          setTimeout(() => {
+            document.addEventListener("keydown", nextLvl);
+          }, 1000);
           break;
+
         case Data.State.lose:
-          console.log("U LOST BRO");
+          //! Reset player score, level and speed. Will be changed when I add main menu
+          let reset = function () {
+            _player.resetSpeedLevel();
+            _player.resetScore();
+            _player.resetPillIndex();
+            _player.setVirusLevel(0);
+
+            console.warn(_player.getSpeed(), _player.getPillIndex(), _player.getVirusLevel());
+
+            _player.setupBoard();
+            Engine.WriteInfo(_player);
+            if (Game.EmulationMode == Data.EmulationMode.ATARI)
+              Engine.ChangeBackground(_player.getVirusLevel() % 5);
+            Game.Controls.Add();
+            Engine.ClearStatus();
+            Game.MainLoop(_player);
+            document.removeEventListener("keydown", reset);
+          };
+
+          this.Controls.Remove();
           Engine.ShowStatus("lose", Game.EmulationMode);
           if (_player.getScore() > parseInt(Game.TopScore))
             localStorage.setItem("top", _player.getScore());
           clearInterval(player.getInterval());
+
+          setTimeout(() => {
+            document.addEventListener("keydown", reset);
+          }, 1000);
           break;
       }
       if (_player.state == Data.State.movement && _player.isGrounded) _player.spawnPill();
       Engine.Render(_player.board);
-      // if (DEBUG) Utility.printBoard(_player.board);
     }, _speed);
 
     _player.setInterval(_interval);
@@ -395,7 +434,7 @@ let Game = {
     setInterval(Game.CheckFocus, 300);
   },
   CheckFocus: function () {
-    if (!document.hasFocus()) {
+    if (!document.hasFocus() && player.state == Data.State.movement) {
       clearInterval(player.getInterval());
       player.setInterval(null);
       Engine.ShowStatus("pause", Game.EmulationMode);

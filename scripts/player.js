@@ -123,6 +123,7 @@ class Player {
         this.board[candidateY * 8 + candidateX] = virusColor;
         viruses--;
       } while (viruses > 0);
+      this.state = Data.State.movement;
     };
     // getters and setters
     // Get speed
@@ -130,6 +131,7 @@ class Player {
       return Data.FramesPerRow[_speedLvl] * Data.FRAME_MULTIPLIER;
     };
     this.setSpeedLevel = (speedLvl) => (_speedLvl = _referenceSpeedLvl = speedLvl);
+    this.resetSpeedLevel = () => (_speedLvl = _referenceSpeedLvl);
     this.getSpeedLevel = () => {
       return _referenceSpeedLvl == Data.SpeedLevel.LOW
         ? 0
@@ -141,6 +143,7 @@ class Player {
     this.setVirusLevel = (lvl) => (_virusLvl = lvl);
     // > score
     this.getScore = () => _score;
+    this.resetScore = () => (_score = 0);
     this.incrementScore = (viruses) => {
       let bonus =
         (viruses < 6 ? viruses : 6) *
@@ -154,6 +157,7 @@ class Player {
     this.getInterval = () => _interval;
     this.setInterval = (interval) => (_interval = interval);
     // > pill index
+    this.resetPillIndex = () => (_pillsIndex = 0);
     this.getPillIndex = () => _pillsIndex;
     // > orientation
     this.getOrientation = function () {
