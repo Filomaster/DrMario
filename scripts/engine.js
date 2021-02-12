@@ -10,6 +10,8 @@ const T_SCORE = document.getElementById("top-score");
 const LVL = document.getElementById("lvl");
 const SPEED = document.getElementById("speed");
 const VIRUS = document.getElementById("virus");
+const STATUS = document.getElementById("status");
+const STATUS_MASK = document.getElementById("status-mask");
 // This object handle all 'technical side' of the game
 // (basically anything that is not related to game data)
 let Engine = {
@@ -119,6 +121,8 @@ let Engine = {
   Resources: {
     digits: new Array(10), // All digits numbers
     speedIndicators: new Array(3), // All speed values displayed in game
+    // Two variables to store level clear and game over messages
+    message: { win: "", lose: "", pause: "", winMask: "", loseMask: "", pauseMask: "" },
     // Loading all resources like sprites and
     Load: function (mode_string) {
       // Loading graphic
@@ -140,12 +144,20 @@ let Engine = {
           ROOT.style.setProperty(_property, _path + "sprites/" + _src + _name + '.png")');
         }
       }
-      // Loading sprites url to arrays
+      // Loading sprites url to arrays and variables
       // > Digit sprites
       for (let i = 0; i < 10; i++) this.digits[i] = _path + "digits/" + i + '.png")';
       // > Speed level sprites
       for (let i = 0; i < 3; i++) this.speedIndicators[i] = +_path + "info/sp_" + i + '.png")';
-
+      // > Clear and game over messages
+      this.message.win = _path + 'windows/win.png");';
+      this.message.lose = _path + 'windows/lose.png");';
+      this.message.pause = _path + 'windows/pause.png");';
+      if (mode_string == "ATARI") {
+        this.message.loseMask = _path + 'windows/lose_mask.png");';
+        this.message.pauseMask = _path + 'windows/lose_mask.png");';
+        this.message.winMask = _path + 'windows/win_mask.png");';
+      }
       // Loading sounds
     },
   },
@@ -157,11 +169,16 @@ let Engine = {
       parent.append(field);
     });
   },
+  GraphicManager: {
+    tileSize: 0,
+    emulationMode: "", // TODO: Reorganize code
+  },
   // This method change colors of chessboard tiles in the background.
   ChangeBackground: (color_a, color_b = "transparent") => {
     console.log(color_a);
     ROOT.style.setProperty("--background-tile-a", Data.ColorsATARI.bcg[color_a]);
   },
+  RenderNumber: function (parent, number) {}, //TODO
   // As name suggest this method is responsible for writing score and top score into the scoreboard
   WriteInfo: (_player) => {
     // TODO: You repeat the nearly identical for loop 4 times. Just make it one method, won't ya?
@@ -222,8 +239,41 @@ let Engine = {
       }
     }
   },
+  ShowStatus: function (status, mode) {
+    let _sizes;
+    let _message = this.Resources.message[status];
+    if (mode == Data.EmulationMode.ATARI) _sizes = Data.WindowSize.ATARI;
+    else if (mode == Data.EmulationMode.NES) _sizes = Data.WindowSize.NES;
+    else if (mode == Data.EmulationMode.GB) _sizes = Data.WindowSize.GB;
 
-  DrawBackground: (mode, _player) => {
+    if (status == "win") _sizes = _sizes.win;
+    else if (status == "lose") _sizes = _sizes.lose;
+    else if (status == "pause") _sizes = _sizes.pause;
+
+    //prettier-ignore
+    STATUS.style =
+      `display: block; background-image: ${_message} width: ${_sizes[0]*this.GraphicManager.tileSize}vh;
+       height: ${_sizes[1]*this.GraphicManager.tileSize}vh; 
+       left: ${_sizes[2]*this.GraphicManager.tileSize}vh; 
+       bottom: ${_sizes[3]*this.GraphicManager.tileSize}vh;
+       background-size: ${_sizes[0]*this.GraphicManager.tileSize}vh ${_sizes[1]*this.GraphicManager.tileSize}vh;`;
+    if (mode == Data.EmulationMode.ATARI) {
+      STATUS_MASK.style = `display: block; background-color: var(--background-tile-a);
+         mask: ${this.Resources.message[status + "Mask"]}
+         width: ${_sizes[0] * this.GraphicManager.tileSize}vh;
+         height: ${_sizes[1] * this.GraphicManager.tileSize}vh; 
+         left: ${_sizes[2] * this.GraphicManager.tileSize}vh; 
+         bottom: ${_sizes[3] * this.GraphicManager.tileSize}vh;
+         mask-size: ${_sizes[0] * this.GraphicManager.tileSize}vh ${
+        _sizes[1] * this.GraphicManager.tileSize
+      }vh;`;
+    }
+  },
+  ClearStatus: function () {
+    STATUS.style.display = "none";
+    STATUS_MASK.style.display = "none";
+  },
+  DrawBackground: function (mode, _player) {
     T_SCORE.style.display = "grid";
     let screen,
       color_a,
@@ -312,6 +362,7 @@ let Engine = {
         break;
     }
     let tileSize = 100 / screen.h;
+    this.GraphicManager.tileSize = tileSize;
     ROOT.style.setProperty("--tile-size", tileSize + "vh");
     ROOT.style.setProperty("--virus-bottom", vir_bot * tileSize + "vh");
     ROOT.style.setProperty("--lvl-bottom", lvl_bot * tileSize + "vh");

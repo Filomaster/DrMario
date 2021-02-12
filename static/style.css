@@ -70,6 +70,16 @@ body {
       image-rendering: pixelated;
 }
 
+.status {
+  position: absolute;
+  display: none;
+  -ms-interpolation-mode: nearest-neighbor;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -o-pixelated;
+      image-rendering: pixelated;
+}
+
 .score {
   position: absolute;
   display: -ms-grid;

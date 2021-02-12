@@ -54,6 +54,12 @@ body {
   image-rendering: pixelated;
 }
 
+.status {
+  position: absolute;
+  display: none;
+  image-rendering: pixelated;
+}
+
 .score {
   position: absolute;
   display: grid;

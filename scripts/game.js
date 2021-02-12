@@ -24,6 +24,28 @@ let Game = {
     //   }
     // }
   },
+  // This may look stupid, and kinda is but this hell of callbacks has it's own purpose;
+  // I want to enable/disable 'main' input listeners sometimes.
+  // At first I wanted just wrap my Engine.Input stuff inside anonymous function but...
+  // You CAN'T remove anonymous listeners. And this is why I have this one hell of wrappers here
+  Listeners: {
+    Wrapper: {
+      Move: (e) => Engine.Input.GetKey(e, Game.Move, Game.Rotate, player),
+      StartShift: (e) => Engine.Input.GetKeyOnce(e, Game.StartShift, player),
+      StopShift: (e) => Engine.Input.GetKeyOnce(e, Game.StopShift, player),
+    },
+    Add: function () {
+      document.addEventListener("keydown", this.Wrapper.Move);
+      document.addEventListener("keydown", this.Wrapper.StartShift);
+      document.addEventListener("keyup", this.Wrapper.StopShift);
+    },
+    RemoveListeners: function () {
+      document.removeEventListener("keydown", this.Wrapper.Move);
+      document.removeEventListener("keydown", this.Wrapper.StartShift);
+      document.removeEventListener("keyup", this.Wrapper.StopShift);
+    },
+  },
+
   // Initializing all things needed for game
   Setup: () => {
     // Load top score and set emulation mode from local storage. If storage is empty populate it with default values
@@ -39,17 +61,7 @@ let Game = {
     // TODO: Add 2 players mode
     player = new Player();
 
-    // Adding listeners for whole document to handle keyboard input
-    // This whole callback hell serves purpose of implementing different callback for alternate keybinding in multiplayer
-    document.addEventListener("keydown", (e) => {
-      Engine.Input.GetKey(e, Game.Move, Game.Rotate, player);
-    });
-    document.addEventListener("keydown", (e) => {
-      Engine.Input.GetKeyOnce(e, Game.StartShift, player);
-    });
-    document.addEventListener("keyup", (e) => {
-      Engine.Input.GetKeyOnce(e, Game.StopShift, player);
-    });
+    Game.Listeners.Add();
 
     player.setupBoard();
     Engine.DrawBackground(Game.EmulationMode, player);
@@ -362,7 +374,8 @@ let Game = {
           console.log("level clear");
           break;
         case Data.State.lose:
-          console.log("you lost");
+          console.log("U LOST BRO");
+          Engine.ShowStatus("lose", Game.EmulationMode);
           if (_player.getScore() > parseInt(Game.TopScore))
             localStorage.setItem("top", _player.getScore());
           clearInterval(player.getInterval());
@@ -385,7 +398,9 @@ let Game = {
     if (!document.hasFocus()) {
       clearInterval(player.getInterval());
       player.setInterval(null);
+      Engine.ShowStatus("pause", Game.EmulationMode);
     } else if (document.hasFocus() && player.getInterval() == null) {
+      Engine.ClearStatus();
       Game.MainLoop(player);
     }
   },

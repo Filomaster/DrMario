@@ -10,6 +10,11 @@ let Data = {
   ScreenSize: { ATARI: { w: 40, h: 24 }, NES: { w: 32, h: 30 }, GB: { w: 20, h: 18 } },
   ColorsNES: { bcg: ["#005200", "#3900A5", "#808080"] },
   ColorsATARI: { bcg: ["#621C73", "#008267", "#ffb68c", "#837e85", "#123eb2"] },
+  // Sizes of windows showed in game
+  // prettier-ignore
+  WindowSize: { ATARI: { win: [18, 5, 12, 10], lose: [14, 5, 14, 11], pause: [14, 5, 14, 11] },
+                NES: { win: [8, 16, 12, 4], lose: [8, 16, 12, 4], pause: [8, 16, 12, 4] },
+                GB: { win: [8, 5, 2, 1], lose: [8, 5, 2, 1], pause: [8, 15, 2, 1] } }, // width, height, left, bottom
   // Css properties
   // prettier-ignore
   PropertyCSS: [], //! TODO
