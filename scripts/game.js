@@ -28,7 +28,7 @@ let Game = {
   // I want to enable/disable 'main' input listeners sometimes.
   // At first I wanted just wrap my Engine.Input stuff inside anonymous function but...
   // You CAN'T remove anonymous listeners. And this is why I have this one hell of wrappers here
-  Listeners: {
+  Controls: {
     Wrapper: {
       Move: (e) => Engine.Input.GetKey(e, Game.Move, Game.Rotate, player),
       StartShift: (e) => Engine.Input.GetKeyOnce(e, Game.StartShift, player),
@@ -39,7 +39,7 @@ let Game = {
       document.addEventListener("keydown", this.Wrapper.StartShift);
       document.addEventListener("keyup", this.Wrapper.StopShift);
     },
-    RemoveListeners: function () {
+    Remove: function () {
       document.removeEventListener("keydown", this.Wrapper.Move);
       document.removeEventListener("keydown", this.Wrapper.StartShift);
       document.removeEventListener("keyup", this.Wrapper.StopShift);
@@ -61,7 +61,7 @@ let Game = {
     // TODO: Add 2 players mode
     player = new Player();
 
-    Game.Listeners.Add();
+    Game.Controls.Add();
 
     player.setupBoard();
     Engine.DrawBackground(Game.EmulationMode, player);

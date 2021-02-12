@@ -8,8 +8,8 @@ class Player {
     this.pill = { l: 0, r: 0, y: 0, rotation: 0 }; //TODO: It might be not the best option
     this.isGrounded = true; //! idk if this is the best idea
     // Pseudo private variables
-    let _referenceSpeedLvl = Data.SpeedLevel.LOW;
-    let _speedLvl = Data.SpeedLevel.LOW;
+    let _referenceSpeedLvl = Data.SpeedLevel.MED;
+    let _speedLvl = Data.SpeedLevel.MED;
     let _virusLvl = 0;
     let _pillCounter = 0;
     let _score = 0;
@@ -131,15 +131,11 @@ class Player {
     };
     this.setSpeedLevel = (speedLvl) => (_speedLvl = _referenceSpeedLvl = speedLvl);
     this.getSpeedLevel = () => {
-      return {
-        name:
-          _referenceSpeedLvl == Data.SpeedLevel.LOW
-            ? "LOW"
-            : _referenceSpeedLvl == Data.SpeedLevel.MED
-            ? "MED"
-            : "HI",
-        level: _speedLvl,
-      };
+      return _referenceSpeedLvl == Data.SpeedLevel.LOW
+        ? 0
+        : _referenceSpeedLvl == Data.SpeedLevel.MED
+        ? 1
+        : 2;
     };
     this.getVirusLevel = () => _virusLvl;
     this.setVirusLevel = (lvl) => (_virusLvl = lvl);

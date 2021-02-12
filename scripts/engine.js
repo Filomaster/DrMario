@@ -45,14 +45,17 @@ let Engine = {
     // Saving key binding to the local storage
     SaveBinding: function () {
       for (const [_key, _value] of Object.entries(this.Binding)) {
-        for (let i = 0; i < 2; i++) localStorage.setItem(_key + "_" + i, _value[i]);
+        for (let i = 0; i < 2; i++)
+          localStorage.setItem(_key + "_" + i, _value[i]);
       }
     },
     // Loading key binding from local storage
     LoadBinding: function () {
       for (const [_key, _value] of Object.entries(localStorage)) {
         if (this.Binding.hasOwnProperty(_key.slice(0, _key.length - 2)))
-          this.Binding[_key.slice(0, _key.length - 2)][parseInt(_key[_key.length - 1])] = _value;
+          this.Binding[_key.slice(0, _key.length - 2)][
+            parseInt(_key[_key.length - 1])
+          ] = _value;
       }
     },
     // Resetting keybinding to default values
@@ -122,7 +125,14 @@ let Engine = {
     digits: new Array(10), // All digits numbers
     speedIndicators: new Array(3), // All speed values displayed in game
     // Two variables to store level clear and game over messages
-    message: { win: "", lose: "", pause: "", winMask: "", loseMask: "", pauseMask: "" },
+    message: {
+      win: "",
+      lose: "",
+      pause: "",
+      winMask: "",
+      loseMask: "",
+      pauseMask: "",
+    },
     // Loading all resources like sprites and
     Load: function (mode_string) {
       // Loading graphic
@@ -141,14 +151,19 @@ let Engine = {
           let _property = "--" + _colors[i] + "-" + _sprites[j];
           let _name = _colors[i] + "_" + _sprites[j];
           // Setting pill/virus sprite path as
-          ROOT.style.setProperty(_property, _path + "sprites/" + _src + _name + '.png")');
+          ROOT.style.setProperty(
+            _property,
+            _path + "sprites/" + _src + _name + '.png")'
+          );
         }
       }
       // Loading sprites url to arrays and variables
       // > Digit sprites
-      for (let i = 0; i < 10; i++) this.digits[i] = _path + "digits/" + i + '.png")';
+      for (let i = 0; i < 10; i++)
+        this.digits[i] = _path + "digits/" + i + '.png")';
       // > Speed level sprites
-      for (let i = 0; i < 3; i++) this.speedIndicators[i] = +_path + "info/sp_" + i + '.png")';
+      for (let i = 0; i < 3; i++)
+        this.speedIndicators[i] = _path + "info/sp_" + i + '.png")';
       // > Clear and game over messages
       this.message.win = _path + 'windows/win.png");';
       this.message.lose = _path + 'windows/lose.png");';
@@ -176,7 +191,10 @@ let Engine = {
   // This method change colors of chessboard tiles in the background.
   ChangeBackground: (color_a, color_b = "transparent") => {
     console.log(color_a);
-    ROOT.style.setProperty("--background-tile-a", Data.ColorsATARI.bcg[color_a]);
+    ROOT.style.setProperty(
+      "--background-tile-a",
+      Data.ColorsATARI.bcg[color_a]
+    );
   },
   RenderNumber: function (parent, number) {}, //TODO
   // As name suggest this method is responsible for writing score and top score into the scoreboard
@@ -199,7 +217,8 @@ let Engine = {
     }
     // Those two lines bit hacky and are by no mean optimal, but this way of separating digits is super easy;
     let _t_score_str = Game.TopScore; // First I convert number to string
-    for (let i = _t_score_str.length; i < 7; i++) _t_score_str = "0" + _t_score_str; // Then iterate through all characters (digits in this case)
+    for (let i = _t_score_str.length; i < 7; i++)
+      _t_score_str = "0" + _t_score_str; // Then iterate through all characters (digits in this case)
     for (let i = 0; i < _t_score_str.length; i++) {
       if (T_SCORE.childNodes.length < 7) {
         let digit = document.createElement("div");
@@ -213,7 +232,8 @@ let Engine = {
       }
     }
 
-    let _viruses = (player.getVirusCount() < 10 ? "0" : "") + player.getVirusCount();
+    let _viruses =
+      (player.getVirusCount() < 10 ? "0" : "") + player.getVirusCount();
     for (let i = 0; i < _viruses.length; i++) {
       if (VIRUS.childNodes.length < 2) {
         let digit = document.createElement("div");
@@ -222,11 +242,13 @@ let Engine = {
         }; background-size: 100%;`;
         VIRUS.append(digit);
       } else {
-        VIRUS.childNodes[i].style.backgroundImage = Engine.Resources.digits[parseInt(_viruses[i])];
+        VIRUS.childNodes[i].style.backgroundImage =
+          Engine.Resources.digits[parseInt(_viruses[i])];
       }
     }
 
-    let _level = (player.getVirusLevel() < 10 ? "0" : "") + player.getVirusLevel();
+    let _level =
+      (player.getVirusLevel() < 10 ? "0" : "") + player.getVirusLevel();
     for (let i = 0; i < _level.length; i++) {
       if (LVL.childNodes.length < 2) {
         let digit = document.createElement("div");
@@ -235,9 +257,16 @@ let Engine = {
         }; background-size: 100%;`;
         LVL.append(digit);
       } else {
-        LVL.childNodes[i].style.backgroundImage = Engine.Resources.digits[parseInt(_level[i])];
+        LVL.childNodes[i].style.backgroundImage =
+          Engine.Resources.digits[parseInt(_level[i])];
       }
     }
+    console.log(Engine.Resources.speedIndicators[_player.getSpeedLevel()]);
+    //prettier-ignore
+    SPEED.style = `position: absolute; height: var(--speed-height); width: var(--speed-width);
+    background-image: ${Engine.Resources.speedIndicators[_player.getSpeedLevel()]};
+    background-size: var(--speed-width) var(--speed-height); image-rendering: pixelated;  
+    bottom: var(--speed-y); right: var(--speed-x);`;
   },
   ShowStatus: function (status, mode) {
     let _sizes;
@@ -290,7 +319,11 @@ let Engine = {
       info_right,
       lvl_bot,
       vir_bot,
-      t_score_y;
+      t_score_y,
+      speed_x,
+      speed_y,
+      speed_width,
+      speed_height;
 
     let spritesMultiplier = 1;
     color_b = "000";
@@ -312,17 +345,21 @@ let Engine = {
         vir_bot = 2;
         lvl_bot = 8;
         left_decoration_width = 13;
+        speed_width = 3;
+        speed_height = 1;
+        speed_x = 2;
+        speed_y = 5;
         break;
       case Data.EmulationMode.NES:
         Engine.Resources.Load("NES");
         screen = Data.ScreenSize.NES;
         color_a =
-          _player.getSpeedLevel().name == "LOW"
+          _player.getSpeedLevel() == 0
             ? Data.ColorsNES.bcg[0]
-            : _player.getSpeedLevel().name == "MED"
+            : _player.getSpeedLevel() == 1
             ? Data.ColorsNES.bcg[1]
             : Data.ColorsNES.bcg[2];
-
+        console.log(color_a);
         jar_width = 10;
         jar_height = 22;
         info_right = 3;
@@ -336,6 +373,10 @@ let Engine = {
         score_y = 11;
         glass_size = 11;
         left_decoration_width = 10;
+        speed_width = 3;
+        speed_height = 1;
+        speed_x = 3;
+        speed_y = 7;
         break;
       case Data.EmulationMode.GB:
         Engine.Resources.Load("GB");
@@ -356,6 +397,10 @@ let Engine = {
         left_decoration_width = 7;
         color_a = "#606060";
         color_b = "#A8A8A8";
+        speed_width = 1;
+        speed_height = 5;
+        speed_x = 1;
+        speed_y = 9;
         break;
       default:
         console.log("Yo mate, what's wrong?");
@@ -364,22 +409,35 @@ let Engine = {
     let tileSize = 100 / screen.h;
     this.GraphicManager.tileSize = tileSize;
     ROOT.style.setProperty("--tile-size", tileSize + "vh");
+    ROOT.style.setProperty("--speed-x", speed_x * tileSize + "vh");
+    ROOT.style.setProperty("--speed-y", speed_y * tileSize + "vh");
+    ROOT.style.setProperty("--speed-width", speed_width * tileSize + "vh");
+    ROOT.style.setProperty("--speed-height", speed_height * tileSize + "vh");
     ROOT.style.setProperty("--virus-bottom", vir_bot * tileSize + "vh");
     ROOT.style.setProperty("--lvl-bottom", lvl_bot * tileSize + "vh");
     ROOT.style.setProperty("--info-right", info_right * tileSize + "vh");
     ROOT.style.setProperty("--score-y", score_y * tileSize + "vh");
     ROOT.style.setProperty("--t-score-y", t_score_y * tileSize + "vh");
     ROOT.style.setProperty("--scores-x", scores_x * tileSize + "vh");
-    ROOT.style.setProperty("--bcg-tile-size", tileSize / spritesMultiplier + "vh");
+    ROOT.style.setProperty(
+      "--bcg-tile-size",
+      tileSize / spritesMultiplier + "vh"
+    );
     ROOT.style.setProperty("--offset-x", offset_x * tileSize + "vh");
     ROOT.style.setProperty("--offset-y", offset_y * tileSize + "vh");
     ROOT.style.setProperty("--jar-width", jar_width * tileSize + "vh");
     ROOT.style.setProperty("--jar-height", jar_height * tileSize + "vh");
-    ROOT.style.setProperty("--left-decoration-width", left_decoration_width * tileSize + "vh");
+    ROOT.style.setProperty(
+      "--left-decoration-width",
+      left_decoration_width * tileSize + "vh"
+    );
     ROOT.style.setProperty("--glass-height", glass_size * tileSize + "vh");
     ROOT.style.setProperty("--scoreboard-height", 10 * tileSize + "vh");
     ROOT.style.setProperty("--info-width", 11 * tileSize + "vh");
-    ROOT.style.setProperty("--board-offset-x", board_offset_x * tileSize + "vh");
+    ROOT.style.setProperty(
+      "--board-offset-x",
+      board_offset_x * tileSize + "vh"
+    );
     ROOT.style.setProperty("--board-offset-y", tileSize + "vh");
     ROOT.style.setProperty("--dr-bcg-offset", 2 * tileSize + "vh");
     ROOT.style.setProperty("--dr-bcg-size", 9 * tileSize + "vh");
@@ -391,8 +449,10 @@ let Engine = {
     for (let i = 0; i < screen.h * spritesMultiplier; i++) {
       for (let j = 0; j < screen.w * spritesMultiplier; j++) {
         let tile = document.createElement("div");
-        tile.style = "width: var(--bcg-tile-size); height: var(--bcg-tile-size);";
-        if (!(i % 2 == j % 2) == 0 ? 0 : 1) tile.style.backgroundColor = "var(--background-tile-a)";
+        tile.style =
+          "width: var(--bcg-tile-size); height: var(--bcg-tile-size);";
+        if (!(i % 2 == j % 2) == 0 ? 0 : 1)
+          tile.style.backgroundColor = "var(--background-tile-a)";
         else tile.style.backgroundColor = "var(--background-tile-b)";
         BACKGROUND.appendChild(tile);
       }
@@ -432,18 +492,28 @@ let Engine = {
       if (BOARD.childNodes[i].classList.contains("clear")) {
         _class = BOARD.childNodes[i].classList;
       } else {
-        if (i > 7 && BOARD.childNodes[i - 8].dataset.pair == BOARD.childNodes[i].dataset.pair)
+        if (
+          i > 7 &&
+          BOARD.childNodes[i - 8].dataset.pair ==
+            BOARD.childNodes[i].dataset.pair
+        )
           _class += " down";
         else if (
           i < 119 &&
-          BOARD.childNodes[i + 8].dataset.pair == BOARD.childNodes[i].dataset.pair
+          BOARD.childNodes[i + 8].dataset.pair ==
+            BOARD.childNodes[i].dataset.pair
         )
           _class += " up";
-        else if (i > 0 && BOARD.childNodes[i - 1].dataset.pair == BOARD.childNodes[i].dataset.pair)
+        else if (
+          i > 0 &&
+          BOARD.childNodes[i - 1].dataset.pair ==
+            BOARD.childNodes[i].dataset.pair
+        )
           _class += " right";
         else if (
           i < 127 &&
-          BOARD.childNodes[i + 1].dataset.pair == BOARD.childNodes[i].dataset.pair
+          BOARD.childNodes[i + 1].dataset.pair ==
+            BOARD.childNodes[i].dataset.pair
         )
           _class += " left";
         else _class += " single";
