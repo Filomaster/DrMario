@@ -11,6 +11,7 @@
 let player; // !temporary player. Modify when creating multiplayer mode
 let Game = {
   EmulationMode: Data.EmulationMode.ATARI,
+  TopScore: "0", // Global top score. It's used only in singleplayer mode anyway, so I won't be moving it to the player class
   // Initializing boards for players. Player number is passed as an argument
   InitBoard: (playerCount) => {
     for (let i = 0; i < player.board.length; i++) {
@@ -23,25 +24,47 @@ let Game = {
     //   }
     // }
   },
+  // This may look stupid, and kinda is but this hell of callbacks has it's own purpose;
+  // I want to enable/disable 'main' input listeners sometimes.
+  // At first I wanted just wrap my Engine.Input stuff inside anonymous function but...
+  // You CAN'T remove anonymous listeners. And this is why I have this one hell of wrappers here
+  Controls: {
+    Wrapper: {
+      Move: (e) => Engine.Input.GetKey(e, Game.Move, Game.Rotate, player),
+      StartShift: (e) => Engine.Input.GetKeyOnce(e, Game.StartShift, player),
+      StopShift: (e) => Engine.Input.GetKeyOnce(e, Game.StopShift, player),
+    },
+    Add: function () {
+      document.addEventListener("keydown", this.Wrapper.Move);
+      document.addEventListener("keydown", this.Wrapper.StartShift);
+      document.addEventListener("keyup", this.Wrapper.StopShift);
+    },
+    Remove: function () {
+      document.removeEventListener("keydown", this.Wrapper.Move);
+      document.removeEventListener("keydown", this.Wrapper.StartShift);
+      document.removeEventListener("keyup", this.Wrapper.StopShift);
+    },
+  },
+
   // Initializing all things needed for game
   Setup: () => {
+    // Load top score and set emulation mode from local storage. If storage is empty populate it with default values
+    if (localStorage.length == 0) {
+      localStorage.setItem("top", 0);
+      localStorage.setItem("mode", Data.EmulationMode.ATARI);
+    } else {
+      Engine.Input.LoadBinding();
+      Game.TopScore = localStorage.getItem("top");
+      Game.EmulationMode = parseInt(localStorage.getItem("mode"));
+    }
+
     // TODO: Add 2 players mode
     player = new Player();
 
-    // Adding listeners for whole document to handle keyboard input
-    // This whole callback hell serves purpose of implementing different callback for alternate keybinding in multiplayer
-    document.addEventListener("keydown", (e) => {
-      Engine.Input.GetKey(e, Game.Move, Game.Rotate, player);
-    });
-    document.addEventListener("keydown", (e) => {
-      Engine.Input.GetKeyOnce(e, Game.StartShift, player);
-    });
-    document.addEventListener("keyup", (e) => {
-      Engine.Input.GetKeyOnce(e, Game.StopShift, player);
-    });
+    Game.Controls.Add();
 
     player.setupBoard();
-    // Game.InitBoard(1); // Filing whole Game.board with 0
+    Engine.DrawBackground(Game.EmulationMode, player);
     Engine.InitBoard(player.board, BOARD); // Creating game board in the document
   },
   //
@@ -90,6 +113,7 @@ let Game = {
   // This method rotates player pill
   Rotate: (_player, rotation) => {
     if (_player.state != Data.State.movement) return; // Rotating only when player can interact with pill
+    if (_player.pill.y == 0) return; // !For now - prevent rotation in first row, that cause bug
     let _ro = _player.pill.rotation; // Saving old rotation value, to check if color swap will be needed
     // Modifying values to keep consistent 0*, 90*, 180* and 270* rotation values
     if (_player.pill.rotation + rotation >= 360) _player.pill.rotation = 0;
@@ -157,14 +181,15 @@ let Game = {
     clearInterval(_player.getInterval());
     _player.state = Data.State.shifting;
     // let shiftSpeed = _player.gameSpeed > 100 ? 50 : _player.gameSpeed > 50 ? 25 : 1;
-    Game.Gravity(_player, 20);
+    Game.MainLoop(_player, 20);
   },
   StopShift: (_player, _state = Data.State.movement) => {
     if (Game.EmulationMode == Data.EmulationMode.ATARI && _state == Data.State.movement) return;
-    // BUG: Gravity in NES after shifting is canceled
+    if (_player.state != Data.State.shifting) return;
+    // BUG: MainLoop in NES after shifting is canceled
     clearInterval(_player.getInterval());
     _player.state = _state;
-    Game.Gravity(_player);
+    Game.MainLoop(_player);
   },
 
   // This method check if two cells are the same color (one might be virus tho)
@@ -225,6 +250,7 @@ let Game = {
         Engine.Render(board);
       });
       _player.incrementScore(viruses);
+      Engine.WriteInfo(_player);
       return true;
     }
     return false;
@@ -240,7 +266,7 @@ let Game = {
       return true;
     return false;
   },
-  Gravity: (_player, _speed = _player.getSpeed()) => {
+  MainLoop: (_player, _speed = _player.getSpeed()) => {
     let _interval = setInterval(() => {
       // Checking current game state
       switch (_player.state) {
@@ -278,7 +304,7 @@ let Game = {
             if ((_player.state = Data.State.shifting)) Game.StopShift(_player, Data.State.clear);
             _player.state = Data.State.clear; //After placing pill, we need to check if any cells can be cleared
             clearInterval(_player.getInterval());
-            Game.Gravity(_player, 50);
+            Game.MainLoop(_player, 50);
           }
           break;
         case Data.State.clear:
@@ -289,13 +315,16 @@ let Game = {
             BOARD.childNodes.forEach((node) => node.classList.remove("clear"));
             Engine.Render(_player.board);
           }, 100);
-          if (_player.board.filter(Utility.getVirusesCount) == 0) {
+          if (_player.getVirusCount() == 0) {
             _player.setVirusLevel(_player.getVirusLevel() + 1);
             _player.setupBoard();
+            Engine.WriteInfo(_player);
+            if (Game.EmulationMode == Data.EmulationMode.ATARI)
+              Engine.ChangeBackground(_player.getVirusLevel() % 5);
           }
           if (_player.state == Data.State.movement) {
             clearInterval(_player.getInterval());
-            Game.Gravity(_player);
+            Game.MainLoop(_player);
           }
           break;
         case Data.State.gravity:
@@ -341,6 +370,16 @@ let Game = {
             _player.state = Data.State.clear;
           }
           break;
+        case Data.State.win:
+          console.log("level clear");
+          break;
+        case Data.State.lose:
+          console.log("U LOST BRO");
+          Engine.ShowStatus("lose", Game.EmulationMode);
+          if (_player.getScore() > parseInt(Game.TopScore))
+            localStorage.setItem("top", _player.getScore());
+          clearInterval(player.getInterval());
+          break;
       }
       if (_player.state == Data.State.movement && _player.isGrounded) _player.spawnPill();
       Engine.Render(_player.board);
@@ -352,15 +391,17 @@ let Game = {
   Game1P: function () {
     player.spawnPill();
     Engine.Render(player.board);
-    this.Gravity(player);
+    this.MainLoop(player);
     setInterval(Game.CheckFocus, 300);
   },
   CheckFocus: function () {
     if (!document.hasFocus()) {
       clearInterval(player.getInterval());
       player.setInterval(null);
+      Engine.ShowStatus("pause", Game.EmulationMode);
     } else if (document.hasFocus() && player.getInterval() == null) {
-      Game.Gravity(player);
+      Engine.ClearStatus();
+      Game.MainLoop(player);
     }
   },
 };

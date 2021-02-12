@@ -1,20 +1,4 @@
-$gs: 5vh;
-$board-width: 8 * $gs;
-$screen-width: 134vh;
-
-// All colors in the foreground
-$gray: #837e85;
-$blue: #78a0db;
-$yellow: #f4e377;
-$red: #9e454c;
-// Background colors
-$bcg-orange: #ffb68c;
-$bcg-brown: #ad5216;
-$bcg-red: #901829;
-$bcg-green: #008267;
-$bcg-blue: #123eb2;
-
-$bcg: $bcg-green;
+// This is more general stylesheet. Styles of all elements are described here
 
 body {
   color: #fff;
@@ -24,42 +8,119 @@ body {
 }
 
 .background {
-  // background-color: #7C2F27;
-  width: 134vh;
+  width: var(--width);
   height: 100vh;
   margin: auto;
-
-  background-image: linear-gradient(45deg, $bcg 25%, transparent 26%),
-    linear-gradient(-45deg, $bcg 25%, transparent 26%),
-    linear-gradient(45deg, transparent 74%, $bcg 75%),
-    linear-gradient(-45deg, transparent 74%, $bcg 75%);
-  background-size: $gs * 2 $gs * 2;
-  background-position: 0 0, 0 $gs, ($gs) (-$gs), (-$gs) 0;
+  position: relative;
+}
+.background-fill {
+  position: absolute;
+  width: var(--width);
+  display: grid;
+  grid-template-columns: repeat(var(--tiles-width), var(--bcg-tile-size));
+  grid-auto-rows: minmax(var(--bcg-tile-size), auto);
 }
 
+.bcg-img {
+  position: absolute;
+  width: var(--width);
+  height: var(--height);
+  background-image: var(--bcg-img);
+  background-size: var(--width) var(--height);
+  image-rendering: pixelated;
+}
+
+.jar {
+  position: absolute;
+  bottom: var(--offset-y);
+  left: var(--offset-x);
+  width: var(--jar-width);
+  height: var(--jar-height);
+  background-image: var(--jar-img);
+  background-size: var(--jar-width) var(--jar-height);
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+.jar-mask {
+  position: absolute;
+  bottom: var(--offset-y);
+  left: var(--offset-x);
+  width: var(--jar-width);
+  height: var(--jar-height);
+  background-color: var(--background-tile-a);
+  mask: var(--jar-mask);
+  mask-size: var(--jar-width) var(--jar-height);
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+
+.status {
+  position: absolute;
+  display: none;
+  image-rendering: pixelated;
+}
+
+.score {
+  position: absolute;
+  display: grid;
+  grid-template-columns: repeat(7, var(--tile-size));
+  image-rendering: pixelated;
+  top: var(--score-y);
+  left: var(--scores-x);
+}
+.top-score {
+  position: absolute;
+  display: grid;
+  grid-template-columns: repeat(7, var(--tile-size));
+  image-rendering: pixelated;
+  top: var(--t-score-y);
+  left: var(--scores-x);
+}
+
+.virus-info {
+  position: absolute;
+  height: var(--tile-size);
+  bottom: var(--virus-bottom);
+  right: var(--info-right);
+  display: grid;
+  grid-template-columns: repeat(2, var(--tile-size));
+  image-rendering: pixelated;
+}
+.lvl {
+  position: absolute;
+  height: var(--tile-size);
+  bottom: var(--lvl-bottom);
+  right: var(--info-right);
+  display: grid;
+  grid-template-columns: repeat(2, var(--tile-size));
+  image-rendering: pixelated;
+}
 .grid-container {
   position: absolute;
-  margin-left: $screen-width/2 - $board-width/2;
-  margin-top: 10vh;
+  left: var(--board-offset-x);
+  bottom: var(--board-offset-y);
   display: grid;
-  background-color: #000;
-  width: $board-width;
-  border: 10px solid rgb(254, 255, 174);
 
-  grid-template-columns: $gs $gs $gs $gs $gs $gs $gs $gs;
-  grid-template-rows: $gs $gs $gs $gs $gs $gs $gs $gs $gs $gs $gs $gs $gs $gs $gs $gs;
+  grid-template-columns: repeat(8, var(--tile-size));
+  grid-template-rows: repeat(16, var(--tile-size));
 }
 
 .crt::before {
   content: " ";
   display: block;
+  width: var(--width);
   position: absolute;
   top: 0;
   left: 0;
   bottom: 0;
   right: 0;
   background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
-    linear-gradient(90deg, rgba(255, 0, 0, 0.05), rgba(0, 255, 0, 0.05), rgba(0, 0, 255, 0.05));
+    linear-gradient(
+      90deg,
+      rgba(255, 0, 0, 0.05),
+      rgba(0, 255, 0, 0.05),
+      rgba(0, 0, 255, 0.05)
+    );
   z-index: 2;
   background-size: 100% 2px, 3px 100%;
   pointer-events: none;
@@ -82,14 +143,24 @@ body {
 
 .vignette {
   position: absolute;
-  width: 134vh;
   height: 100vh;
+  width: var(--width);
   margin: auto;
-  background: radial-gradient(transparent 85%, black),
-    linear-gradient(90deg, black, transparent 15%, transparent 85%, black),
-    linear-gradient(black, transparent 5%, transparent 95%, black);
+  background: radial-gradient(transparent 85%, #000000bb),
+    linear-gradient(
+      90deg,
+      #000000bb,
+      transparent 15%,
+      transparent 85%,
+      #000000bb
+    ),
+    linear-gradient(#000000bb, transparent 5%, transparent 95%, #000000bb);
   background-blend-mode: multiply;
   z-index: 4;
+}
+
+.speed {
+  image-rendering: pixelated;
 }
 
 // prettier-ignore
@@ -99,42 +170,42 @@ body {
   image-rendering: pixelated;
   &.virus{
     &.yellow { 
-      background-image: url("/images/sprites/viruses/yellow_new.png"); 
-      &.clear{background-image: url("/images/sprites/viruses/yl_x.png")}
+      background-image: var(--yl-virus); 
+      &.clear{background-image: var(--yl-x)}
     }
     &.red { 
-      background-image: url("/images/sprites/viruses/virus_red.png");
-      &.clear{background-image: url("/images/sprites/viruses/br_x.png")}
+      background-image: var(--rd-virus);
+      &.clear{background-image: var(--rd-x)}
     }
     &.blue { 
-      background-image: url("/images/sprites/viruses/virus_blue.png"); 
-      &.clear{background-image: url("/images/sprites/viruses/bl_x.png")}
+      background-image: var(--bl-virus); 
+      &.clear{background-image: var(--bl-x)}
     }
   }
   &.pill{
     &.yellow {
-      &.single { background-image: url("/images/sprites/pills/yl_dot.png") }
-      &.up { background-image: url("/images/sprites/pills/yl_up.png")  }
-      &.down { background-image: url("/images/sprites/pills/yl_down.png") }
-      &.left { background-image: url("/images/sprites/pills/yl_left.png") }
-      &.right { background-image: url("/images/sprites/pills/yl_right.png") }
-      &.clear { background-image: url("/images/sprites/pills/yl_o.png") }
+      &.single { background-image: var(--yl-dot) }
+      &.up { background-image: var(--yl-up)  }
+      &.down { background-image: var(--yl-down) }
+      &.left { background-image: var(--yl-left) }
+      &.right { background-image: var(--yl-right) }
+      &.clear { background-image: var(--yl-o) }
     }
     &.red { 
-      &.single { background-image: url("/images/sprites/pills/br_dot.png") }
-      &.up { background-image: url("/images/sprites/pills/br_up.png")  }
-      &.down { background-image: url("/images/sprites/pills/br_down.png") }
-      &.left { background-image: url("/images/sprites/pills/br_left.png") }
-      &.right { background-image: url("/images/sprites/pills/br_right.png") }
-      &.clear { background-image: url("/images/sprites/pills/br_o.png") }
+      &.single { background-image: var(--rd-dot) }
+      &.up { background-image: var(--rd-up)  }
+      &.down { background-image: var(--rd-down) }
+      &.left { background-image: var(--rd-left) }
+      &.right { background-image: var(--rd-right) }
+      &.clear { background-image: var(--rd-o) }
     }
     &.blue { 
-      &.single { background-image: url("/images/sprites/pills/bl_dot.png") }
-      &.up { background-image: url("/images/sprites/pills/bl_up.png")  }
-      &.down { background-image: url("/images/sprites/pills/bl_down.png") }
-      &.left { background-image: url("/images/sprites/pills/bl_left.png") }
-      &.right { background-image: url("/images/sprites/pills/bl_right.png") }
-      &.clear { background-image: url("/images/sprites/pills/bl_o.png") }
+      &.single { background-image: var(--bl-dot) }
+      &.up { background-image: var(--bl-up)  }
+      &.down { background-image: var(--bl-down) }
+      &.left { background-image: var(--bl-left) }
+      &.right { background-image: var(--bl-right) }
+      &.clear { background-image: var(--bl-o) }
     }
   }
 }

@@ -1,170 +1,5 @@
 "use strict";
 
-// Player class for easier (at least in theory) multiplayer implementation
-class Player {
-  gameSpeed = 250;
-  constructor() {
-    this.board = new Array(128);
-    this.pill = { l: 0, r: 0, y: 0, rotation: 0 }; //TODO: It might be not the best option
-    this.isGrounded = true; //! idk if this is the best idea
-    // Pseudo private variables
-    let _referenceSpeedLvl = Data.SpeedLevel.LOW;
-    let _speedLvl = Data.SpeedLevel.LOW;
-    let _virusLvl = 0;
-    let _pillCounter = 0;
-    let _score = 0;
-    let _interval;
-    // In the original Dr.Mario game (NES version), pills were pre-generated at the start of game.
-    // https://tetris.wiki/Dr._Mario
-    // I'll go with the same approach, storing all pills in the 128 elements array.
-    let _preGeneratedPills = new Array(128);
-    let _pillsIndex = 0;
-
-    // methods
-    this.spawnPill = function () {
-      // if (DEBUG && _pillCounter % 10 != 0)
-      //   console.log(10 - (_pillCounter % 10) + " pills to next speed lvl");
-      if (_pillCounter % 10 == 0 && _pillCounter != 0) {
-        if (_speedLvl < _referenceSpeedLvl + 50) {
-          _speedLvl++;
-          if (DEBUG) console.info(`SPEED UP! \n Current lvl: ${_speedLvl}`);
-        }
-      }
-      this.pill = { l: 3, r: 4, y: 0, rotation: 0 }; //TODO: Describe pill
-      this.state = Data.State.movement;
-      this.board[3] = _preGeneratedPills[_pillsIndex].l;
-      this.board[4] = _preGeneratedPills[_pillsIndex].r;
-      BOARD.childNodes[3].dataset.pair = _pillsIndex;
-      BOARD.childNodes[4].dataset.pair = _pillsIndex;
-      _pillsIndex = _pillsIndex >= 127 ? 0 : _pillsIndex + 1;
-      _pillCounter++;
-      this.isGrounded = false;
-    };
-    this.generatePills = () => {
-      for (let i = 0; i < _preGeneratedPills.length; i++) {
-        _preGeneratedPills[i] = {
-          l: Utility.getRandomInt(1, 3),
-          r: Utility.getRandomInt(1, 3),
-        };
-      }
-    };
-    // This method generates new board for each level with viruses placed.
-    // I've tried to remake original algorithm as close as possible.
-    // It may not be prettiest or most efficient one, but I wanted it to be faithful to the source.
-    this.setupBoard = () => {
-      this.board.fill(Data.Field.empty);
-      let viruses = (_virusLvl + 1) * 4;
-      let loopCounter = 0;
-      generation: do {
-        let candidateY = 15 - Utility.getRandomInt(0, Data.MaximumRow[_virusLvl]);
-        let candidateX = Utility.getRandomInt(0, 7);
-        let remainder = (viruses - 1) % 4;
-        // Calculate viruses colors
-        let virusColor =
-          remainder == 0
-            ? Data.Field.virus_y // If reminder is 0 virus color is yellow
-            : remainder == 1
-            ? Data.Field.virus_r // If reminder is 1 virus color is red
-            : remainder == 2
-            ? Data.Field.virus_b // If reminder is 2 virus color is blue
-            : Data.VirusColor[Utility.getRandomInt(0, 15)]; // In any other case virus color is generated randomly from table
-        // Checking if candidate coordinates are free to place virus
-        // let index = candidateY * 8 + candidateX;
-        while (this.board[candidateY * 8 + candidateX] != Data.Field.empty) {
-          console.log(
-            `Cell [${candidateY},${candidateX}] (${candidateY * 8 + candidateX}) is not empty`
-          );
-          console.log(this.board[candidateY * 8 + candidateX]);
-          candidateX++;
-          if (candidateX == 8) { candidateX = 0; candidateY++; } //prettier-ignore
-          if (candidateY == 16) continue generation;
-          // index = candidateY * 8 + candidateX;
-        }
-        colors: do {
-          // Checking 2 cells away from candidate in all 4 directions
-          let checkedCells = [
-            this.board[candidateY * 8 + candidateX - 2],
-            candidateY * 8 + candidateX < 125 ? this.board[candidateY * 8 + candidateX + 2] : null,
-            this.board[candidateY * 8 + candidateX - 8],
-            candidateY * 8 + candidateX < 119 ? this.board[candidateY * 8 + candidateX + 8] : null,
-          ];
-          if (!checkedCells.filter(Utility.getUnique).includes(virusColor)) {
-            console.log("Color is good, braking from loop");
-            break colors;
-          }
-          if (checkedCells.filter(Utility.getUnique).length == 3) {
-            console.log(checkedCells);
-            candidateX++;
-            if (candidateX == 8) { candidateX = 0; candidateY++; } //prettier-ignore
-            if (candidateY == 16) continue generation;
-            continue colors;
-            // index = candidateY * 8 + candidateX;
-          }
-          if (virusColor == Data.Field.virus_y) {
-            virusColor = Data.Field.virus_b;
-            console.log("Changed virus color to blue");
-          } else if (virusColor == Data.Field.virus_r) {
-            virusColor = Data.Field.virus_y;
-            console.log("Changed virus color to yellow");
-          } else if (virusColor == Data.Field.virus_b) {
-            virusColor = Data.Field.virus_r;
-            console.log("Changed virus color to red");
-          }
-          loopCounter++;
-          if (loopCounter > 10) {
-            this.setupBoard();
-            return;
-          }
-        } while (true);
-        this.board[candidateY * 8 + candidateX] = virusColor;
-        viruses--;
-      } while (viruses > 0);
-    };
-    // getters and setters
-    // Get speed
-    this.getSpeed = () => {
-      return Data.FramesPerRow[_speedLvl] * Data.FRAME_MULTIPLIER;
-    };
-    this.setSpeedLevel = (speedLvl) => (_speedLvl = _referenceSpeedLvl = speedLvl);
-    this.getSpeedLevel = () => {
-      return {
-        name:
-          _referenceSpeedLvl == Data.SpeedLevel.LOW
-            ? "LOW"
-            : _referenceSpeedLvl == Data.SpeedLevel.MED
-            ? "MED"
-            : "HI",
-        level: _speedLvl,
-      };
-    };
-    this.getVirusLevel = () => _virusLvl;
-    this.setVirusLevel = (lvl) => (_virusLvl = lvl);
-    // > score
-    this.getScore = () => _score;
-    this.incrementScore = (viruses) => {
-      let bonus =
-        (viruses < 6 ? viruses : 6) *
-        100 *
-        (_referenceSpeedLvl == 15 ? 1 : _referenceSpeedLvl == 25 ? 2 : 3);
-      _score += bonus;
-      if (DEBUG && bonus > 0) console.info(`points: ${bonus}, score: ${_score}`);
-    };
-
-    // > interval
-    this.getInterval = () => _interval;
-    this.setInterval = (interval) => (_interval = interval);
-    // > pill index
-    this.getPillIndex = () => _pillsIndex;
-    // > orientation
-    this.getOrientation = function () {
-      return this.pill.rotation == 0 || this.pill.rotation == 180 ? "horizontal" : "vertical";
-    };
-
-    // Functions called in constructor
-    this.generatePills(); // Generating pills after initializing array
-  }
-}
-
 // All data and structures, shared in other scripts; equivalent of enumerators
 let Data = {
   // All possible field status, empty, 3x color and 3x viruses
@@ -172,8 +7,19 @@ let Data = {
   State: { movement: 0, clear: 1, gravity: 2, shifting: 3, win: 4, lose: 5, menu: 6 }, // Game state, for performance optimization in the main loop
   PlayerMode: { single: 1, multi: 2 }, // Possible game modes, based on original game
   EmulationMode: { ATARI: 0, NES: 1, GB: 2, GBC: 3 }, // Emulation mode. Some versions may have slightly different mechanics
-  SpeedLevel: { LOW: 15, MED: 25, HI: 31 },
+  ScreenSize: { ATARI: { w: 40, h: 24 }, NES: { w: 32, h: 30 }, GB: { w: 20, h: 18 } },
+  ColorsNES: { bcg: ["#005200", "#3900A5", "#808080"] },
+  ColorsATARI: { bcg: ["#621C73", "#008267", "#ffb68c", "#837e85", "#123eb2"] },
+  // Sizes of windows showed in game
+  // prettier-ignore
+  WindowSize: { ATARI: { win: [18, 5, 12, 10], lose: [14, 5, 14, 11], pause: [14, 5, 14, 11] },
+                NES: { win: [8, 16, 12, 4], lose: [8, 16, 12, 4], pause: [8, 16, 12, 4] },
+                GB: { win: [8, 5, 2, 1], lose: [8, 5, 2, 1], pause: [8, 15, 2, 1] } }, // width, height, left, bottom
+  // Css properties
+  // prettier-ignore
+  PropertyCSS: [], //! TODO
   // Tables needed for original game mechanics like setting speed or generating viruses
+  SpeedLevel: { LOW: 15, MED: 25, HI: 31 },
   MaximumRow: [9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 10, 10, 11, 11, 12],
   VirusColor: [12, 11, 13, 13, 11, 12, 12, 11, 13, 13, 11, 12, 12, 11, 13, 11],
   FRAME_MULTIPLIER: 16.6667,

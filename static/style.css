@@ -6,32 +6,158 @@ body {
 }
 
 .background {
-  width: 134vh;
+  width: var(--width);
   height: 100vh;
   margin: auto;
-  background-image: linear-gradient(45deg, #008267 25%, transparent 26%), linear-gradient(-45deg, #008267 25%, transparent 26%), linear-gradient(45deg, transparent 74%, #008267 75%), linear-gradient(-45deg, transparent 74%, #008267 75%);
-  background-size: 10vh 10vh;
-  background-position: 0 0, 0 5vh, 5vh -5vh, -5vh 0;
+  position: relative;
+}
+
+.background-fill {
+  position: absolute;
+  width: var(--width);
+  display: -ms-grid;
+  display: grid;
+  -ms-grid-columns: (var(--bcg-tile-size))[var];
+      grid-template-columns: repeat(var(--tiles-width), var(--bcg-tile-size));
+  grid-auto-rows: minmax(var(--bcg-tile-size), auto);
+}
+
+.bcg-img {
+  position: absolute;
+  width: var(--width);
+  height: var(--height);
+  background-image: var(--bcg-img);
+  background-size: var(--width) var(--height);
+  -ms-interpolation-mode: nearest-neighbor;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -o-pixelated;
+      image-rendering: pixelated;
+}
+
+.jar {
+  position: absolute;
+  bottom: var(--offset-y);
+  left: var(--offset-x);
+  width: var(--jar-width);
+  height: var(--jar-height);
+  background-image: var(--jar-img);
+  background-size: var(--jar-width) var(--jar-height);
+  background-repeat: no-repeat;
+  -ms-interpolation-mode: nearest-neighbor;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -o-pixelated;
+      image-rendering: pixelated;
+}
+
+.jar-mask {
+  position: absolute;
+  bottom: var(--offset-y);
+  left: var(--offset-x);
+  width: var(--jar-width);
+  height: var(--jar-height);
+  background-color: var(--background-tile-a);
+  -webkit-mask: var(--jar-mask);
+          mask: var(--jar-mask);
+  -webkit-mask-size: var(--jar-width) var(--jar-height);
+          mask-size: var(--jar-width) var(--jar-height);
+  background-repeat: no-repeat;
+  -ms-interpolation-mode: nearest-neighbor;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -o-pixelated;
+      image-rendering: pixelated;
+}
+
+.status {
+  position: absolute;
+  display: none;
+  -ms-interpolation-mode: nearest-neighbor;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -o-pixelated;
+      image-rendering: pixelated;
+}
+
+.score {
+  position: absolute;
+  display: -ms-grid;
+  display: grid;
+  -ms-grid-columns: (var(--tile-size))[7];
+      grid-template-columns: repeat(7, var(--tile-size));
+  -ms-interpolation-mode: nearest-neighbor;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -o-pixelated;
+      image-rendering: pixelated;
+  top: var(--score-y);
+  left: var(--scores-x);
+}
+
+.top-score {
+  position: absolute;
+  display: -ms-grid;
+  display: grid;
+  -ms-grid-columns: (var(--tile-size))[7];
+      grid-template-columns: repeat(7, var(--tile-size));
+  -ms-interpolation-mode: nearest-neighbor;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -o-pixelated;
+      image-rendering: pixelated;
+  top: var(--t-score-y);
+  left: var(--scores-x);
+}
+
+.virus-info {
+  position: absolute;
+  height: var(--tile-size);
+  bottom: var(--virus-bottom);
+  right: var(--info-right);
+  display: -ms-grid;
+  display: grid;
+  -ms-grid-columns: (var(--tile-size))[2];
+      grid-template-columns: repeat(2, var(--tile-size));
+  -ms-interpolation-mode: nearest-neighbor;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -o-pixelated;
+      image-rendering: pixelated;
+}
+
+.lvl {
+  position: absolute;
+  height: var(--tile-size);
+  bottom: var(--lvl-bottom);
+  right: var(--info-right);
+  display: -ms-grid;
+  display: grid;
+  -ms-grid-columns: (var(--tile-size))[2];
+      grid-template-columns: repeat(2, var(--tile-size));
+  -ms-interpolation-mode: nearest-neighbor;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -o-pixelated;
+      image-rendering: pixelated;
 }
 
 .grid-container {
   position: absolute;
-  margin-left: 47vh;
-  margin-top: 10vh;
+  left: var(--board-offset-x);
+  bottom: var(--board-offset-y);
   display: -ms-grid;
   display: grid;
-  background-color: #000;
-  width: 40vh;
-  border: 10px solid #feffae;
-  -ms-grid-columns: 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh;
-      grid-template-columns: 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh;
-  -ms-grid-rows: 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh;
-      grid-template-rows: 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh 5vh;
+  -ms-grid-columns: (var(--tile-size))[8];
+      grid-template-columns: repeat(8, var(--tile-size));
+  -ms-grid-rows: (var(--tile-size))[16];
+      grid-template-rows: repeat(16, var(--tile-size));
 }
 
 .crt::before {
   content: " ";
   display: block;
+  width: var(--width);
   position: absolute;
   top: 0;
   left: 0;
@@ -62,13 +188,21 @@ body {
 
 .vignette {
   position: absolute;
-  width: 134vh;
   height: 100vh;
+  width: var(--width);
   margin: auto;
-  background: radial-gradient(transparent 85%, black), -webkit-gradient(linear, left top, right top, from(black), color-stop(15%, transparent), color-stop(85%, transparent), to(black)), -webkit-gradient(linear, left top, left bottom, from(black), color-stop(5%, transparent), color-stop(95%, transparent), to(black));
-  background: radial-gradient(transparent 85%, black), linear-gradient(90deg, black, transparent 15%, transparent 85%, black), linear-gradient(black, transparent 5%, transparent 95%, black);
+  background: radial-gradient(transparent 85%, #000000bb), -webkit-gradient(linear, left top, right top, from(#000000bb), color-stop(15%, transparent), color-stop(85%, transparent), to(#000000bb)), -webkit-gradient(linear, left top, left bottom, from(#000000bb), color-stop(5%, transparent), color-stop(95%, transparent), to(#000000bb));
+  background: radial-gradient(transparent 85%, #000000bb), linear-gradient(90deg, #000000bb, transparent 15%, transparent 85%, #000000bb), linear-gradient(#000000bb, transparent 5%, transparent 95%, #000000bb);
   background-blend-mode: multiply;
   z-index: 4;
+}
+
+.speed {
+  -ms-interpolation-mode: nearest-neighbor;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -o-pixelated;
+      image-rendering: pixelated;
 }
 
 .pixel-perfect {
@@ -82,99 +216,99 @@ body {
 }
 
 .pixel-perfect.virus.yellow {
-  background-image: url("/images/sprites/viruses/yellow_new.png");
+  background-image: var(--yl-virus);
 }
 
 .pixel-perfect.virus.yellow.clear {
-  background-image: url("/images/sprites/viruses/yl_x.png");
+  background-image: var(--yl-x);
 }
 
 .pixel-perfect.virus.red {
-  background-image: url("/images/sprites/viruses/virus_red.png");
+  background-image: var(--rd-virus);
 }
 
 .pixel-perfect.virus.red.clear {
-  background-image: url("/images/sprites/viruses/br_x.png");
+  background-image: var(--rd-x);
 }
 
 .pixel-perfect.virus.blue {
-  background-image: url("/images/sprites/viruses/virus_blue.png");
+  background-image: var(--bl-virus);
 }
 
 .pixel-perfect.virus.blue.clear {
-  background-image: url("/images/sprites/viruses/bl_x.png");
+  background-image: var(--bl-x);
 }
 
 .pixel-perfect.pill.yellow.single {
-  background-image: url("/images/sprites/pills/yl_dot.png");
+  background-image: var(--yl-dot);
 }
 
 .pixel-perfect.pill.yellow.up {
-  background-image: url("/images/sprites/pills/yl_up.png");
+  background-image: var(--yl-up);
 }
 
 .pixel-perfect.pill.yellow.down {
-  background-image: url("/images/sprites/pills/yl_down.png");
+  background-image: var(--yl-down);
 }
 
 .pixel-perfect.pill.yellow.left {
-  background-image: url("/images/sprites/pills/yl_left.png");
+  background-image: var(--yl-left);
 }
 
 .pixel-perfect.pill.yellow.right {
-  background-image: url("/images/sprites/pills/yl_right.png");
+  background-image: var(--yl-right);
 }
 
 .pixel-perfect.pill.yellow.clear {
-  background-image: url("/images/sprites/pills/yl_o.png");
+  background-image: var(--yl-o);
 }
 
 .pixel-perfect.pill.red.single {
-  background-image: url("/images/sprites/pills/br_dot.png");
+  background-image: var(--rd-dot);
 }
 
 .pixel-perfect.pill.red.up {
-  background-image: url("/images/sprites/pills/br_up.png");
+  background-image: var(--rd-up);
 }
 
 .pixel-perfect.pill.red.down {
-  background-image: url("/images/sprites/pills/br_down.png");
+  background-image: var(--rd-down);
 }
 
 .pixel-perfect.pill.red.left {
-  background-image: url("/images/sprites/pills/br_left.png");
+  background-image: var(--rd-left);
 }
 
 .pixel-perfect.pill.red.right {
-  background-image: url("/images/sprites/pills/br_right.png");
+  background-image: var(--rd-right);
 }
 
 .pixel-perfect.pill.red.clear {
-  background-image: url("/images/sprites/pills/br_o.png");
+  background-image: var(--rd-o);
 }
 
 .pixel-perfect.pill.blue.single {
-  background-image: url("/images/sprites/pills/bl_dot.png");
+  background-image: var(--bl-dot);
 }
 
 .pixel-perfect.pill.blue.up {
-  background-image: url("/images/sprites/pills/bl_up.png");
+  background-image: var(--bl-up);
 }
 
 .pixel-perfect.pill.blue.down {
-  background-image: url("/images/sprites/pills/bl_down.png");
+  background-image: var(--bl-down);
 }
 
 .pixel-perfect.pill.blue.left {
-  background-image: url("/images/sprites/pills/bl_left.png");
+  background-image: var(--bl-left);
 }
 
 .pixel-perfect.pill.blue.right {
-  background-image: url("/images/sprites/pills/bl_right.png");
+  background-image: var(--bl-right);
 }
 
 .pixel-perfect.pill.blue.clear {
-  background-image: url("/images/sprites/pills/bl_o.png");
+  background-image: var(--bl-o);
 }
 
 .error {
