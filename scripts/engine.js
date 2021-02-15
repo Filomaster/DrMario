@@ -141,7 +141,7 @@ let Engine = {
     Load: function (mode_string) {
       // Loading graphic
       // Loading all graphics path to CSS variables
-      let _path = `url("/resources/${mode_string}/`;
+      let _path = `url("../resources/${mode_string}/`;
       // > Setting background images path in the CSS variables
       ROOT.style.setProperty("--bcg-img", _path + 'bcg/bcg.png")');
       ROOT.style.setProperty("--jar-img", _path + 'bcg/jar.png")');
