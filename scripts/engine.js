@@ -14,6 +14,8 @@ const STATUS = document.getElementById("status");
 const STATUS_MASK = document.getElementById("status-mask");
 const THROW = document.getElementById("throw");
 const MARIO = document.getElementById("mario");
+const SWITCH = document.getElementById("changeMode");
+// const switch;
 
 // This object handle all 'technical side' of the game
 // (basically anything that is not related to game data)
@@ -104,7 +106,7 @@ let Engine = {
           break;
         case this.Binding.pause[0]:
         case this.Binding.pause[1]:
-          console.log("pause");
+          // console.log("pause");
           break;
       }
     },
@@ -133,7 +135,8 @@ let Engine = {
       [new Array(4), new Array(2), new Array(2)], // yellow
       [new Array(4), new Array(2), new Array(2)], // blue
     ],
-    mario: { toss: new Array(3), lose: "" },
+    mario: { toss: new Array(3), lose: "", offsetLoss: 0, widthLoss: 0 },
+    icon: "",
     // Loading all resources like sprites and
     Load: function (mode_string) {
       // Loading graphic
@@ -168,17 +171,20 @@ let Engine = {
         this.message.pauseMask = _path + 'windows/lose_mask.png");';
         this.message.winMask = _path + 'windows/win_mask.png");';
       }
+      this.icon = _path + 'logo.png");';
+
       // Loading viruses and Mario sprites
+      this.mario.lose = _path + `sprites/mario/lose.png")`;
       for (let i = 0; i < 3; i++) {
-        this.mario.toss[i] = _path + "sprites/mario/toss_" + i + `.png");`;
+        this.mario.toss[i] = _path + "sprites/mario/toss_" + i + `.png")`;
         for (let j = 0; j < 4; j++) {
-          this.virusFrames[i][0][j] = _path + "sprites/viruses/glass/" + Data.Colors[i] + "_dancing_" + j +'.png");'; //prettier-ignore
+          this.virusFrames[i][0][j] = _path + "sprites/viruses/glass/" + Data.Colors[i] + "_dancing_" + j +'.png")'; //prettier-ignore
           if (j % 2 == 0) {
-            this.virusFrames[i][1][j/2] = _path + "sprites/viruses/glass/" + Data.Colors[i] + "_knocked_" + j/2 + '.png");'; //prettier-ignore
-            this.virusFrames[i][2][j/2] = _path + "sprites/viruses/glass/" + Data.Colors[i] + "_laughing_" + j/2 + '.png");'; //prettier-ignore
+            this.virusFrames[i][1][j/2] = _path + "sprites/viruses/glass/" + Data.Colors[i] + "_knocked_" + j/2 + '.png")'; //prettier-ignore
+            this.virusFrames[i][2][j/2] = _path + "sprites/viruses/glass/" + Data.Colors[i] + "_laughing_" + j/2 + '.png")'; //prettier-ignore
           }
         }
-        console.log(this.virusFrames);
+        // console.log(this.virusFrames);
       }
 
       // Loading sounds
@@ -198,7 +204,7 @@ let Engine = {
   },
   // This method change colors of chessboard tiles in the background.
   ChangeBackground: (color_a, color_b = "transparent") => {
-    console.log(color_a);
+    // console.log(color_a);
     ROOT.style.setProperty("--background-tile-a", Data.ColorsATARI.bcg[color_a]);
   },
   RenderNumber: function (parent, number, length) {
@@ -347,7 +353,7 @@ let Engine = {
             : _player.getSpeedLevel() == 1
             ? Data.ColorsNES.bcg[1]
             : Data.ColorsNES.bcg[2];
-        console.log(color_a);
+        // console.log(color_a);
         jar_width = 10;
         jar_height = 22;
         info_right = 3;
@@ -487,6 +493,12 @@ let Engine = {
         background-image: ${this.Resources.mario.toss[0]};
         background-size: ${marioWidth * tileSize}vh ${marioHeight * tileSize}vh;
         right: ${marioX * tileSize}vh; top: ${marioY * tileSize}vh;`
+    this.Resources.mario.offsetLoss = (marioX - 1) * tileSize;
+    this.Resources.mario.widthLoss = (marioWidth + 1) * tileSize;
+    console.log((this.Resources.mario.offsetLoss = (marioX - 1) * tileSize));
+    //prettier-ignore
+    SWITCH.style = `background-image: ${this.Resources.icon}; width: ${2 * tileSize}vh; 
+      height: ${2 * tileSize}vh; top: 0; left: 0; position: fixed;`;
 
     Engine.WriteInfo(_player);
   },
@@ -577,15 +589,14 @@ let Engine = {
   // Animations
   ThrowPill: function (mode, _player) {
     _player.animation = true;
-    console.warn(_player.throwBoard);
+    // console.warn(_player.throwBoard);
     let _counter = 0;
     let _original_l = _player.throwBoard.l;
     let _original_r = _player.throwBoard.r;
     this.throwInterval = setInterval(() => {
       if (_counter < 6 && _counter % 2 == 0) {
-        MARIO.style.backgroundImage = Engine.Resources.mario.toss[_counter/2].toString().replace(";", ""); //prettier-ignore
-      } else if (_counter > 6)
-        MARIO.style.backgroundImage = Engine.Resources.mario.toss[0].toString().replace(";", "");
+        MARIO.style.backgroundImage = Engine.Resources.mario.toss[_counter/2]; //prettier-ignore
+      } else if (_counter > 6) MARIO.style.backgroundImage = Engine.Resources.mario.toss[0];
       if (_counter >= Data.PillThrowFrames[mode].r.length) {
         _player.throwBoard.l = _original_l;
         _player.throwBoard.r = _original_r;

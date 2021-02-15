@@ -9,6 +9,12 @@
 let player; // !temporary player. Modify when creating multiplayer mode
 let Game = {
   EmulationMode: Data.EmulationMode.ATARI,
+  SwitchMode: function () {
+    this.EmulationMode++;
+    if (this.EmulationMode > 2) this.EmulationMode = 0;
+    localStorage.setItem("mode", this.EmulationMode);
+    window.location.reload();
+  },
   TopScore: "0", // Global top score. It's used only in singleplayer mode anyway, so I won't be moving it to the player class
   // Initializing boards for players. Player number is passed as an argument
   InitBoard: (playerCount) => {
@@ -393,6 +399,8 @@ let Game = {
           break;
 
         case Data.State.lose:
+          let _marioWidth = MARIO.style.width;
+          let _marioOffset = MARIO.style.right;
           //! Reset player score, level and speed. Will be changed when I add main menu
           let reset = function () {
             _player.resetSpeed();
@@ -400,19 +408,28 @@ let Game = {
             _player.resetPillIndex();
             _player.setVirusLevel(0);
 
-            console.warn(_player.getSpeed(), _player.getPillIndex(), _player.getVirusLevel());
+            // console.warn(_player.getSpeed(), _player.getPillIndex(), _player.getVirusLevel());
 
             _player.setupBoard();
+            THROW.style.display = "grid";
             Engine.WriteInfo(_player);
             if (Game.EmulationMode == Data.EmulationMode.ATARI)
               Engine.ChangeBackground(_player.getVirusLevel() % 5);
             Game.Controls.Add();
             Engine.ClearStatus();
+            MARIO.style.backgroundImage = Engine.Resources.mario.toss[0];
+            MARIO.style.width = _marioWidth;
+            MARIO.style.right = _marioOffset;
             Game.MainLoop(_player);
             document.removeEventListener("keydown", reset);
           };
 
           this.Controls.Remove();
+          THROW.style.display = "none";
+          MARIO.style.backgroundImage = Engine.Resources.mario.lose;
+          MARIO.style.width = Engine.Resources.mario.widthLoss + "vh";
+          MARIO.style.backgroundSize = `${Engine.Resources.mario.widthLoss}vh ${MARIO.style.height}`;
+          MARIO.style.right = Engine.Resources.mario.offsetLoss + "vh";
           Engine.ShowStatus("lose", Game.EmulationMode);
           if (_player.getScore() > parseInt(Game.TopScore))
             localStorage.setItem("top", _player.getScore());
@@ -432,7 +449,6 @@ let Game = {
     }, _speed);
 
     _player.setInterval(_interval);
-    console.info(_player === player);
   },
   Game1P: function () {
     // player.spawnPill();

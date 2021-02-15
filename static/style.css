@@ -40,6 +40,15 @@ body {
       image-rendering: pixelated;
 }
 
+.btn {
+  opacity: 50%;
+}
+
+.btn:hover {
+  cursor: pointer;
+  opacity: 100%;
+}
+
 .jar {
   position: absolute;
   bottom: var(--offset-y);
