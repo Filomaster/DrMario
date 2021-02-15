@@ -576,14 +576,15 @@ let Engine = {
   throwInterval: 0,
   // Animations
   ThrowPill: function (mode, _player) {
+    _player.animation = true;
     console.warn(_player.throwBoard);
     let _counter = 0;
     let _original_l = _player.throwBoard.l;
     let _original_r = _player.throwBoard.r;
     this.throwInterval = setInterval(() => {
-      if (_counter < 12 && _counter % 4 == 0) {
-        MARIO.style.backgroundImage = Engine.Resources.mario.toss[_counter/4].toString().replace(";", ""); //prettier-ignore
-      } else
+      if (_counter < 6 && _counter % 2 == 0) {
+        MARIO.style.backgroundImage = Engine.Resources.mario.toss[_counter/2].toString().replace(";", ""); //prettier-ignore
+      } else if (_counter > 6)
         MARIO.style.backgroundImage = Engine.Resources.mario.toss[0].toString().replace(";", "");
       if (_counter >= Data.PillThrowFrames[mode].r.length) {
         _player.throwBoard.l = _original_l;
@@ -591,9 +592,10 @@ let Engine = {
         // _player.PrepareNextPill();
         _player.state = Data.State.movement;
         _counter = 0;
-        Game.MainLoop(player);
-        _player.spawnPill();
+        _player.animation = false;
         clearInterval(this.throwInterval);
+        // Game.MainLoop(player);
+        _player.spawnPill();
         return;
       }
 
@@ -629,7 +631,7 @@ let Engine = {
       }
       Engine.Render(_player.throwBoard.content, THROW, _player.throwBoard.width);
       _counter++;
-    }, 2500);
+    }, 25);
   },
 };
 

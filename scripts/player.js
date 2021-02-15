@@ -8,6 +8,7 @@ class Player {
     this.throwBoard = { l: 0, r: 0, rotation: 0, width: 0, height: 0, content: [] };
     this.pill = { l: 0, r: 0, y: 0, rotation: 0 }; //TODO: It might be not the best option
     this.isGrounded = true; //! idk if this is the best idea
+    this.animation = false;
     // Pseudo private variables
     let _referenceSpeedLvl = Data.SpeedLevel.LOW;
     let _speedLvl = Data.SpeedLevel.LOW;

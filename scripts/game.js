@@ -68,7 +68,7 @@ let Game = {
   },
   //
   Move: (_player, direction) => {
-    if (_player.state != Data.State.movement) return;
+    if (_player.state != Data.State.movement || _player.animation == true) return;
     if (
       (direction == -1 &&
         (_player.pill.l == _player.pill.y * 8 ||
@@ -111,7 +111,7 @@ let Game = {
   },
   // This method rotates player pill
   Rotate: (_player, rotation) => {
-    if (_player.state != Data.State.movement) return; // Rotating only when player can interact with pill
+    if (_player.state != Data.State.movement || _player.animation == true) return; // Rotating only when player can interact with pill
     if (_player.pill.y == 0) return; // !For now - prevent rotation in first row, that cause bug
     let _ro = _player.pill.rotation; // Saving old rotation value, to check if color swap will be needed
     // Modifying values to keep consistent 0*, 90*, 180* and 270* rotation values
@@ -267,6 +267,9 @@ let Game = {
   },
   MainLoop: function (_player, _speed = _player.getSpeed()) {
     let _interval = setInterval(() => {
+      if (_player.animation) {
+        return;
+      }
       // Checking current game state
       switch (_player.state) {
         case Data.State.shifting:
@@ -421,8 +424,8 @@ let Game = {
           break;
       }
       if (_player.state == Data.State.movement && _player.isGrounded) {
-        _player.state = Data.State.animation;
-        clearInterval(player.getInterval());
+        // _player.state = Data.State.animation;
+        // clearInterval(player.getInterval());
         Engine.ThrowPill(Game.EmulationMode, _player); //_player.spawnPill();
       }
       Engine.Render(_player.board, BOARD);
@@ -435,7 +438,7 @@ let Game = {
     // player.spawnPill();
     Engine.Render(player.board, BOARD);
     player.state = Data.State.animation;
-    // Engine.ThrowPill(Game.EmulationMode, player);
+    Engine.ThrowPill(Game.EmulationMode, player);
     this.MainLoop(player);
     setInterval(Game.CheckFocus, 300);
   },
