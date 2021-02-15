@@ -1,7 +1,5 @@
 "use strict";
 
-//TODO: Add automatic pause and open pause menu on focus lost
-
 // Pause menu:
 // - resume -
 // sound
@@ -66,6 +64,7 @@ let Game = {
     player.setupBoard();
     Engine.DrawBackground(Game.EmulationMode, player);
     Engine.InitBoard(player.board, BOARD); // Creating game board in the document
+    player.PrepareNextPill();
   },
   //
   Move: (_player, direction) => {
@@ -108,7 +107,7 @@ let Game = {
 
     _player.pill.l += direction;
     _player.pill.r += direction;
-    Engine.Render(_player.board);
+    Engine.Render(_player.board, BOARD);
   },
   // This method rotates player pill
   Rotate: (_player, rotation) => {
@@ -173,11 +172,11 @@ let Game = {
         break;
     }
     if (_fillGap) _player.board[_player.pill.l - 8] = _tmp;
-    Engine.Render(_player.board);
+    Engine.Render(_player.board, BOARD);
   },
   // Dropping pills
   StartShift: (_player) => {
-    if (_player.state == Data.State.shifting) return;
+    if (_player.state != Data.State.movement) return;
     clearInterval(_player.getInterval());
     _player.state = Data.State.shifting;
     // let shiftSpeed = _player.gameSpeed > 100 ? 50 : _player.gameSpeed > 50 ? 25 : 1;
@@ -247,7 +246,7 @@ let Game = {
         board[cell] = Data.Field.empty;
         BOARD.childNodes[cell].removeAttribute("data-pair");
         BOARD.childNodes[cell].classList.add("clear");
-        Engine.Render(board);
+        Engine.Render(board, BOARD);
       });
       _player.incrementScore(viruses);
       Engine.WriteInfo(_player);
@@ -313,7 +312,7 @@ let Game = {
             : Data.State.movement;
           setTimeout(() => {
             BOARD.childNodes.forEach((node) => node.classList.remove("clear"));
-            Engine.Render(_player.board);
+            Engine.Render(_player.board, BOARD);
           }, 100);
           if (_player.getVirusCount() == 0) {
             _player.state = Data.State.win;
@@ -393,7 +392,7 @@ let Game = {
         case Data.State.lose:
           //! Reset player score, level and speed. Will be changed when I add main menu
           let reset = function () {
-            _player.resetSpeedLevel();
+            _player.resetSpeed();
             _player.resetScore();
             _player.resetPillIndex();
             _player.setVirusLevel(0);
@@ -421,15 +420,22 @@ let Game = {
           }, 1000);
           break;
       }
-      if (_player.state == Data.State.movement && _player.isGrounded) _player.spawnPill();
-      Engine.Render(_player.board);
+      if (_player.state == Data.State.movement && _player.isGrounded) {
+        _player.state = Data.State.animation;
+        clearInterval(player.getInterval());
+        Engine.ThrowPill(Game.EmulationMode, _player); //_player.spawnPill();
+      }
+      Engine.Render(_player.board, BOARD);
     }, _speed);
 
     _player.setInterval(_interval);
+    console.info(_player === player);
   },
   Game1P: function () {
-    player.spawnPill();
-    Engine.Render(player.board);
+    // player.spawnPill();
+    Engine.Render(player.board, BOARD);
+    player.state = Data.State.animation;
+    // Engine.ThrowPill(Game.EmulationMode, player);
     this.MainLoop(player);
     setInterval(Game.CheckFocus, 300);
   },

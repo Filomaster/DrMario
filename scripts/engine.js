@@ -12,6 +12,9 @@ const SPEED = document.getElementById("speed");
 const VIRUS = document.getElementById("virus");
 const STATUS = document.getElementById("status");
 const STATUS_MASK = document.getElementById("status-mask");
+const THROW = document.getElementById("throw");
+const MARIO = document.getElementById("mario");
+
 // This object handle all 'technical side' of the game
 // (basically anything that is not related to game data)
 let Engine = {
@@ -123,23 +126,30 @@ let Engine = {
     speedIndicators: new Array(3), // All speed values displayed in game
     //prettier-ignore
     message: { win: "", lose: "", pause: "", winMask: "", loseMask: "", pauseMask: "" }, // Two variables to store level clear and game over messages url
+    // All frames used in the glass
+    virusFrames: [
+      // [dance, knocked, laugh]
+      [new Array(4), new Array(2), new Array(2)], // red
+      [new Array(4), new Array(2), new Array(2)], // yellow
+      [new Array(4), new Array(2), new Array(2)], // blue
+    ],
+    mario: { toss: new Array(3), lose: "" },
     // Loading all resources like sprites and
     Load: function (mode_string) {
       // Loading graphic
       // Loading all graphics path to CSS variables
-      let _path = `url("/images/${mode_string}/`;
+      let _path = `url("/resources/${mode_string}/`;
       // > Setting background images path in the CSS variables
       ROOT.style.setProperty("--bcg-img", _path + 'bcg/bcg.png")');
       ROOT.style.setProperty("--jar-img", _path + 'bcg/jar.png")');
       ROOT.style.setProperty("--jar-mask", _path + 'bcg/jar-mask.png")');
       // > Pills and virus sprites
       let _sprites = ["virus", "x", "left", "right", "up", "down", "dot", "o"];
-      let _colors = ["yl", "rd", "bl"];
       for (let i = 0; i < 3; i++) {
         for (let j = 0; j < _sprites.length; j++) {
           let _src = j < 2 ? "viruses/" : "pills/";
-          let _property = "--" + _colors[i] + "-" + _sprites[j];
-          let _name = _colors[i] + "_" + _sprites[j];
+          let _property = "--" + Data.Colors[i] + "-" + _sprites[j];
+          let _name = Data.Colors[i] + "_" + _sprites[j];
           // Setting pill/virus sprite path as
           ROOT.style.setProperty(_property, _path + "sprites/" + _src + _name + '.png")');
         }
@@ -158,6 +168,19 @@ let Engine = {
         this.message.pauseMask = _path + 'windows/lose_mask.png");';
         this.message.winMask = _path + 'windows/win_mask.png");';
       }
+      // Loading viruses and Mario sprites
+      for (let i = 0; i < 3; i++) {
+        this.mario.toss[i] = _path + "sprites/mario/toss_" + i + `.png");`;
+        for (let j = 0; j < 4; j++) {
+          this.virusFrames[i][0][j] = _path + "sprites/viruses/glass/" + Data.Colors[i] + "_dancing_" + j +'.png");'; //prettier-ignore
+          if (j % 2 == 0) {
+            this.virusFrames[i][1][j/2] = _path + "sprites/viruses/glass/" + Data.Colors[i] + "_knocked_" + j/2 + '.png");'; //prettier-ignore
+            this.virusFrames[i][2][j/2] = _path + "sprites/viruses/glass/" + Data.Colors[i] + "_laughing_" + j/2 + '.png");'; //prettier-ignore
+          }
+        }
+        console.log(this.virusFrames);
+      }
+
       // Loading sounds
     },
   },
@@ -206,6 +229,7 @@ let Engine = {
     background-size: var(--speed-width) var(--speed-height); image-rendering: pixelated;  
     bottom: var(--speed-y); right: var(--speed-x);`;
   },
+
   ShowStatus: function (status, mode) {
     let _sizes;
     let _message = this.Resources.message[status];
@@ -236,10 +260,22 @@ let Engine = {
       }vh;`;
     }
   },
+  ShowViruses: function (mode) {
+    let _virusSize = (mode == Data.EmulationMode.GB ? 2 : 3) * this.GraphicManager.tileSize;
+    for (let i = 0; i < 3; i++) {
+      //prettier-ignore
+      document.getElementById(Data.Colors[i]).style = 
+        `background-image: ${this.Resources.virusFrames[i][0]} 
+        background-size: ${_virusSize}vh ${_virusSize}vh; 
+        height: ${_virusSize}vh; width: ${_virusSize}vh;
+        right: ${this.GraphicManager.tileSize + i*(_virusSize + this.GraphicManager.tileSize/2)}vh; bottom: ${this.GraphicManager.tileSize/2}vh`;
+    }
+  },
   ClearStatus: function () {
     STATUS.style.display = "none";
     STATUS_MASK.style.display = "none";
   },
+  // This is really, really, really, really bad written function, but I don't know if I will have time to optimise it.
   DrawBackground: function (mode, _player) {
     T_SCORE.style.display = "grid";
     let screen,
@@ -263,6 +299,8 @@ let Engine = {
       speed_width,
       speed_height;
 
+    let throwGridX, throwGridY, throwOffsetX, throwOffsetY, throwStartX, throwStartY;
+    let marioHeight, marioWidth, marioX, marioY;
     let spritesMultiplier = 1;
     color_b = "000";
     switch (mode) {
@@ -287,6 +325,18 @@ let Engine = {
         speed_height = 1;
         speed_x = 2;
         speed_y = 5;
+
+        throwGridY = 6;
+        throwGridX = 12;
+        throwOffsetX = 8;
+        throwOffsetY = 0;
+        throwStartX = 10;
+        throwStartY = 3;
+
+        marioHeight = 6;
+        marioWidth = 6;
+        marioX = 4;
+        marioY = 4;
         break;
       case Data.EmulationMode.NES:
         Engine.Resources.Load("NES");
@@ -315,6 +365,18 @@ let Engine = {
         speed_height = 1;
         speed_x = 3;
         speed_y = 7;
+
+        throwGridY = 8;
+        throwGridX = 11;
+        throwOffsetX = 6;
+        throwOffsetY = 2;
+        throwStartX = 9;
+        throwStartY = 7;
+
+        marioHeight = 4.65;
+        marioWidth = 3.75;
+        marioX = 5;
+        marioY = 10;
         break;
       case Data.EmulationMode.GB:
         Engine.Resources.Load("GB");
@@ -339,14 +401,28 @@ let Engine = {
         speed_height = 5;
         speed_x = 1;
         speed_y = 9;
+
+        throwGridY = 6;
+        throwGridX = 9;
+        throwOffsetX = 6;
+        throwOffsetY = 0;
+        throwStartX = 7;
+        throwStartY = 5;
+
+        marioHeight = 3.5;
+        marioWidth = 2.5;
+        marioX = 3.75;
+        marioY = 4.25;
         break;
       default:
         console.log("Yo mate, what's wrong?");
         break;
     }
+
     let tileSize = 100 / screen.h;
     this.GraphicManager.tileSize = tileSize;
     ROOT.style.setProperty("--tile-size", tileSize + "vh");
+    ROOT.style.setProperty("--glass-virus-size", 3 * tileSize + "vh");
     ROOT.style.setProperty("--speed-x", speed_x * tileSize + "vh");
     ROOT.style.setProperty("--speed-y", speed_y * tileSize + "vh");
     ROOT.style.setProperty("--speed-width", speed_width * tileSize + "vh");
@@ -384,9 +460,37 @@ let Engine = {
         BACKGROUND.appendChild(tile);
       }
     }
+    _player.throwBoard.content = new Array(throwGridX * throwGridY).fill(0);
+    _player.throwBoard.width = throwGridX;
+    _player.throwBoard.height = throwGridY;
+    _player.throwBoard.l = throwStartY * throwGridX + throwStartX;
+    _player.throwBoard.r = throwStartY * throwGridX + throwStartX + 1;
+
+    if (THROW.childNodes.length == 0) {
+      for (let i = 0; i < throwGridX * throwGridY; i++) {
+        let _tile = document.createElement("div");
+        _tile.dataset.id = i;
+        THROW.appendChild(_tile);
+      }
+      //prettier-ignore
+      THROW.style = 
+        `position: absolute; display: grid;
+         grid-template-columns: repeat(${throwGridX}, var(--tile-size));
+         grid; grid-template-rows: repeat(${throwGridY}, var(--tile-size));
+         right: ${throwOffsetX * tileSize}vh; top: ${throwOffsetY * tileSize}vh `;
+    }
+
+    // Draw Mario
+    // prettier-ignore
+    MARIO.style = 
+        `position: absolute; height: ${marioHeight * tileSize}vh; width: ${marioWidth * tileSize}vh;
+        background-image: ${this.Resources.mario.toss[0]};
+        background-size: ${marioWidth * tileSize}vh ${marioHeight * tileSize}vh;
+        right: ${marioX * tileSize}vh; top: ${marioY * tileSize}vh;`
+
     Engine.WriteInfo(_player);
   },
-  Render: (board) => {
+  Render: (board, parent, board_width = 8) => {
     let _class;
     for (let i = 0; i < board.length; i++) {
       _class = "pixel-perfect ";
@@ -416,26 +520,32 @@ let Engine = {
           _class = "error";
           break;
       }
-      if (BOARD.childNodes[i].classList.contains("clear")) {
-        _class = BOARD.childNodes[i].classList;
+      if (parent.childNodes[i].classList.contains("clear")) {
+        _class = parent.childNodes[i].classList;
       } else {
-        if (i > 7 && BOARD.childNodes[i - 8].dataset.pair == BOARD.childNodes[i].dataset.pair)
+        if (
+          i > board_width - 1 &&
+          parent.childNodes[i - board_width].dataset.pair == parent.childNodes[i].dataset.pair
+        )
           _class += " down";
         else if (
-          i < 119 &&
-          BOARD.childNodes[i + 8].dataset.pair == BOARD.childNodes[i].dataset.pair
+          i < board.length - board_width &&
+          parent.childNodes[i + board_width].dataset.pair == parent.childNodes[i].dataset.pair
         )
           _class += " up";
-        else if (i > 0 && BOARD.childNodes[i - 1].dataset.pair == BOARD.childNodes[i].dataset.pair)
+        else if (
+          i > 0 &&
+          parent.childNodes[i - 1].dataset.pair == parent.childNodes[i].dataset.pair
+        )
           _class += " right";
         else if (
-          i < 127 &&
-          BOARD.childNodes[i + 1].dataset.pair == BOARD.childNodes[i].dataset.pair
+          i < board.length - 1 &&
+          parent.childNodes[i + 1].dataset.pair == parent.childNodes[i].dataset.pair
         )
           _class += " left";
         else _class += " single";
       }
-      BOARD.childNodes[i].classList = _class;
+      parent.childNodes[i].classList = _class;
     }
   },
   // Tests all pills and viruses sprites. Convenient for development
@@ -454,14 +564,72 @@ let Engine = {
         arr[i * 8 + j] = (i == 5 ? 1 : i == 8 ? 2 : 3) + (j < 6 ? 0 : 10);
       }
     }
-    Engine.Render(arr);
+    Engine.Render(arr, BOARD);
     BOARD.childNodes[5 * 8 + 5].classList.add("clear");
     BOARD.childNodes[5 * 8 + 6].classList.add("clear");
     BOARD.childNodes[8 * 8 + 5].classList.add("clear");
     BOARD.childNodes[8 * 8 + 6].classList.add("clear");
     BOARD.childNodes[11 * 8 + 5].classList.add("clear");
     BOARD.childNodes[11 * 8 + 6].classList.add("clear");
-    Engine.Render(arr);
+    Engine.Render(arr, BOARD);
+  },
+  throwInterval: 0,
+  // Animations
+  ThrowPill: function (mode, _player) {
+    console.warn(_player.throwBoard);
+    let _counter = 0;
+    let _original_l = _player.throwBoard.l;
+    let _original_r = _player.throwBoard.r;
+    this.throwInterval = setInterval(() => {
+      if (_counter < 12 && _counter % 4 == 0) {
+        MARIO.style.backgroundImage = Engine.Resources.mario.toss[_counter/4].toString().replace(";", ""); //prettier-ignore
+      } else
+        MARIO.style.backgroundImage = Engine.Resources.mario.toss[0].toString().replace(";", "");
+      if (_counter >= Data.PillThrowFrames[mode].r.length) {
+        _player.throwBoard.l = _original_l;
+        _player.throwBoard.r = _original_r;
+        // _player.PrepareNextPill();
+        _player.state = Data.State.movement;
+        _counter = 0;
+        Game.MainLoop(player);
+        _player.spawnPill();
+        clearInterval(this.throwInterval);
+        return;
+      }
+
+      let _l = _player.throwBoard.l;
+      let _r = _player.throwBoard.r;
+
+      let _val_r = _player.throwBoard.content[_r];
+      let _val_l = _player.throwBoard.content[_l];
+
+      let _pair_r = THROW.childNodes[_r].dataset.pair;
+      let _pair_l = THROW.childNodes[_l].dataset.pair;
+
+      _player.throwBoard.content[
+        _player.throwBoard.r + Data.PillThrowFrames[mode].r[_counter]
+      ] = _val_r;
+      _player.throwBoard.content[
+        _player.throwBoard.l + Data.PillThrowFrames[mode].l[_counter]
+      ] = _val_l;
+
+      _player.throwBoard.l += Data.PillThrowFrames[mode].l[_counter];
+      _player.throwBoard.r += Data.PillThrowFrames[mode].r[_counter];
+
+      THROW.childNodes[_player.throwBoard.r].dataset.pair = _pair_r;
+      THROW.childNodes[_player.throwBoard.l].dataset.pair = _pair_l;
+
+      if (_player.throwBoard.r != _r && _player.throwBoard.l != _r) {
+        _player.throwBoard.content[_r] = Data.Field.empty;
+        THROW.childNodes[_r].removeAttribute("data-pair");
+      }
+      if (_player.throwBoard.l != _l && _player.throwBoard.r != _l) {
+        _player.throwBoard.content[_l] = Data.Field.empty;
+        THROW.childNodes[_l].removeAttribute("data-pair");
+      }
+      Engine.Render(_player.throwBoard.content, THROW, _player.throwBoard.width);
+      _counter++;
+    }, 2500);
   },
 };
 

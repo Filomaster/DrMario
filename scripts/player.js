@@ -5,11 +5,12 @@ class Player {
   gameSpeed = 250;
   constructor() {
     this.board = new Array(128);
+    this.throwBoard = { l: 0, r: 0, rotation: 0, width: 0, height: 0, content: [] };
     this.pill = { l: 0, r: 0, y: 0, rotation: 0 }; //TODO: It might be not the best option
     this.isGrounded = true; //! idk if this is the best idea
     // Pseudo private variables
-    let _referenceSpeedLvl = Data.SpeedLevel.MED;
-    let _speedLvl = Data.SpeedLevel.MED;
+    let _referenceSpeedLvl = Data.SpeedLevel.LOW;
+    let _speedLvl = Data.SpeedLevel.LOW;
     let _virusLvl = 0;
     let _pillCounter = 0;
     let _score = 0;
@@ -21,6 +22,16 @@ class Player {
     let _pillsIndex = 0;
 
     // methods
+    this.PrepareNextPill = function () {
+      // NOT ENOUGH TIME FOR PRETTY CODE AND OPTIMIZATION
+      this.throwBoard.content.fill(0);
+      console.info(this.throwBoard.l, this.throwBoard.r);
+      this.throwBoard.content[this.throwBoard.r] = _preGeneratedPills[_pillsIndex].r;
+      this.throwBoard.content[this.throwBoard.l] = _preGeneratedPills[_pillsIndex].l;
+      THROW.childNodes[this.throwBoard.r].dataset.pair = _pillsIndex;
+      THROW.childNodes[this.throwBoard.l].dataset.pair = _pillsIndex;
+      Engine.Render(this.throwBoard.content, THROW, this.throwBoard.width);
+    };
     this.spawnPill = function () {
       let _gameoverFlag = false;
       // if (DEBUG && _pillCounter % 10 != 0)
@@ -41,7 +52,9 @@ class Player {
       BOARD.childNodes[4].dataset.pair = _pillsIndex;
       _pillsIndex = _pillsIndex >= 127 ? 0 : _pillsIndex + 1;
       _pillCounter++;
+      Engine.Render(this.board, BOARD);
       this.isGrounded = false;
+      this.PrepareNextPill();
       if (_gameoverFlag) this.state = Data.State.lose;
     };
     this.generatePills = () => {
@@ -130,8 +143,8 @@ class Player {
     this.getSpeed = () => {
       return Data.FramesPerRow[_speedLvl] * Data.FRAME_MULTIPLIER;
     };
+    this.resetSpeed = () => (_speedLvl = _referenceSpeedLvl);
     this.setSpeedLevel = (speedLvl) => (_speedLvl = _referenceSpeedLvl = speedLvl);
-    this.resetSpeedLevel = () => (_speedLvl = _referenceSpeedLvl);
     this.getSpeedLevel = () => {
       return _referenceSpeedLvl == Data.SpeedLevel.LOW
         ? 0

@@ -3,6 +3,11 @@ body {
   background-color: black;
   margin: 0;
   padding: 0;
+  -ms-interpolation-mode: nearest-neighbor;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -o-pixelated;
+      image-rendering: pixelated;
 }
 
 .background {
@@ -152,6 +157,15 @@ body {
       grid-template-columns: repeat(8, var(--tile-size));
   -ms-grid-rows: (var(--tile-size))[16];
       grid-template-rows: repeat(16, var(--tile-size));
+}
+
+.glass-virus {
+  position: absolute;
+  -ms-interpolation-mode: nearest-neighbor;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -o-pixelated;
+      image-rendering: pixelated;
 }
 
 .crt::before {
