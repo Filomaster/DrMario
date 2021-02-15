@@ -5,6 +5,7 @@ body {
   background-color: black;
   margin: 0;
   padding: 0;
+  image-rendering: pixelated;
 }
 
 .background {
@@ -28,6 +29,14 @@ body {
   background-image: var(--bcg-img);
   background-size: var(--width) var(--height);
   image-rendering: pixelated;
+}
+
+.btn {
+  opacity: 50%;
+  &:hover {
+    cursor: pointer;
+    opacity: 100%;
+  }
 }
 
 .jar {
@@ -105,6 +114,11 @@ body {
   grid-template-rows: repeat(16, var(--tile-size));
 }
 
+.glass-virus {
+  position: absolute;
+  image-rendering: pixelated;
+}
+
 .crt::before {
   content: " ";
   display: block;
@@ -115,12 +129,7 @@ body {
   bottom: 0;
   right: 0;
   background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
-    linear-gradient(
-      90deg,
-      rgba(255, 0, 0, 0.05),
-      rgba(0, 255, 0, 0.05),
-      rgba(0, 0, 255, 0.05)
-    );
+    linear-gradient(90deg, rgba(255, 0, 0, 0.05), rgba(0, 255, 0, 0.05), rgba(0, 0, 255, 0.05));
   z-index: 2;
   background-size: 100% 2px, 3px 100%;
   pointer-events: none;
@@ -147,13 +156,7 @@ body {
   width: var(--width);
   margin: auto;
   background: radial-gradient(transparent 85%, #000000bb),
-    linear-gradient(
-      90deg,
-      #000000bb,
-      transparent 15%,
-      transparent 85%,
-      #000000bb
-    ),
+    linear-gradient(90deg, #000000bb, transparent 15%, transparent 85%, #000000bb),
     linear-gradient(#000000bb, transparent 5%, transparent 95%, #000000bb);
   background-blend-mode: multiply;
   z-index: 4;

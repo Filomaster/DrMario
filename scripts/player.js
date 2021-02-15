@@ -5,11 +5,13 @@ class Player {
   gameSpeed = 250;
   constructor() {
     this.board = new Array(128);
+    this.throwBoard = { l: 0, r: 0, rotation: 0, width: 0, height: 0, content: [] };
     this.pill = { l: 0, r: 0, y: 0, rotation: 0 }; //TODO: It might be not the best option
     this.isGrounded = true; //! idk if this is the best idea
+    this.animation = false;
     // Pseudo private variables
-    let _referenceSpeedLvl = Data.SpeedLevel.MED;
-    let _speedLvl = Data.SpeedLevel.MED;
+    let _referenceSpeedLvl = Data.SpeedLevel.LOW;
+    let _speedLvl = Data.SpeedLevel.LOW;
     let _virusLvl = 0;
     let _pillCounter = 0;
     let _score = 0;
@@ -21,6 +23,16 @@ class Player {
     let _pillsIndex = 0;
 
     // methods
+    this.PrepareNextPill = function () {
+      // NOT ENOUGH TIME FOR PRETTY CODE AND OPTIMIZATION
+      this.throwBoard.content.fill(0);
+      // console.info(this.throwBoard.l, this.throwBoard.r);
+      this.throwBoard.content[this.throwBoard.r] = _preGeneratedPills[_pillsIndex].r;
+      this.throwBoard.content[this.throwBoard.l] = _preGeneratedPills[_pillsIndex].l;
+      THROW.childNodes[this.throwBoard.r].dataset.pair = _pillsIndex;
+      THROW.childNodes[this.throwBoard.l].dataset.pair = _pillsIndex;
+      Engine.Render(this.throwBoard.content, THROW, this.throwBoard.width);
+    };
     this.spawnPill = function () {
       let _gameoverFlag = false;
       // if (DEBUG && _pillCounter % 10 != 0)
@@ -41,7 +53,9 @@ class Player {
       BOARD.childNodes[4].dataset.pair = _pillsIndex;
       _pillsIndex = _pillsIndex >= 127 ? 0 : _pillsIndex + 1;
       _pillCounter++;
+      Engine.Render(this.board, BOARD);
       this.isGrounded = false;
+      this.PrepareNextPill();
       if (_gameoverFlag) this.state = Data.State.lose;
     };
     this.generatePills = () => {
@@ -75,10 +89,10 @@ class Player {
         // Checking if candidate coordinates are free to place virus
         // let index = candidateY * 8 + candidateX;
         while (this.board[candidateY * 8 + candidateX] != Data.Field.empty) {
-          console.log(
-            `Cell [${candidateY},${candidateX}] (${candidateY * 8 + candidateX}) is not empty`
-          );
-          console.log(this.board[candidateY * 8 + candidateX]);
+          // console.log(
+          //   `Cell [${candidateY},${candidateX}] (${candidateY * 8 + candidateX}) is not empty`
+          // );
+          // console.log(this.board[candidateY * 8 + candidateX]);
           candidateX++;
           if (candidateX == 8) { candidateX = 0; candidateY++; } //prettier-ignore
           if (candidateY == 16) continue generation;
@@ -93,11 +107,11 @@ class Player {
             candidateY * 8 + candidateX < 119 ? this.board[candidateY * 8 + candidateX + 8] : null,
           ];
           if (!checkedCells.filter(Utility.getUnique).includes(virusColor)) {
-            console.log("Color is good, braking from loop");
+            // console.log("Color is good, braking from loop");
             break colors;
           }
           if (checkedCells.filter(Utility.getUnique).length == 3) {
-            console.log(checkedCells);
+            // console.log(checkedCells);
             candidateX++;
             if (candidateX == 8) { candidateX = 0; candidateY++; } //prettier-ignore
             if (candidateY == 16) continue generation;
@@ -106,13 +120,13 @@ class Player {
           }
           if (virusColor == Data.Field.virus_y) {
             virusColor = Data.Field.virus_b;
-            console.log("Changed virus color to blue");
+            // console.log("Changed virus color to blue");
           } else if (virusColor == Data.Field.virus_r) {
             virusColor = Data.Field.virus_y;
-            console.log("Changed virus color to yellow");
+            // console.log("Changed virus color to yellow");
           } else if (virusColor == Data.Field.virus_b) {
             virusColor = Data.Field.virus_r;
-            console.log("Changed virus color to red");
+            // console.log("Changed virus color to red");
           }
           loopCounter++;
           if (loopCounter > 10) {
@@ -123,12 +137,14 @@ class Player {
         this.board[candidateY * 8 + candidateX] = virusColor;
         viruses--;
       } while (viruses > 0);
+      this.state = Data.State.movement;
     };
     // getters and setters
     // Get speed
     this.getSpeed = () => {
       return Data.FramesPerRow[_speedLvl] * Data.FRAME_MULTIPLIER;
     };
+    this.resetSpeed = () => (_speedLvl = _referenceSpeedLvl);
     this.setSpeedLevel = (speedLvl) => (_speedLvl = _referenceSpeedLvl = speedLvl);
     this.getSpeedLevel = () => {
       return _referenceSpeedLvl == Data.SpeedLevel.LOW
@@ -141,6 +157,7 @@ class Player {
     this.setVirusLevel = (lvl) => (_virusLvl = lvl);
     // > score
     this.getScore = () => _score;
+    this.resetScore = () => (_score = 0);
     this.incrementScore = (viruses) => {
       let bonus =
         (viruses < 6 ? viruses : 6) *
@@ -154,6 +171,7 @@ class Player {
     this.getInterval = () => _interval;
     this.setInterval = (interval) => (_interval = interval);
     // > pill index
+    this.resetPillIndex = () => (_pillsIndex = 0);
     this.getPillIndex = () => _pillsIndex;
     // > orientation
     this.getOrientation = function () {

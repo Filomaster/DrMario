@@ -1,7 +1,5 @@
 "use strict";
 
-//TODO: Add automatic pause and open pause menu on focus lost
-
 // Pause menu:
 // - resume -
 // sound
@@ -11,6 +9,12 @@
 let player; // !temporary player. Modify when creating multiplayer mode
 let Game = {
   EmulationMode: Data.EmulationMode.ATARI,
+  SwitchMode: function () {
+    this.EmulationMode++;
+    if (this.EmulationMode > 2) this.EmulationMode = 0;
+    localStorage.setItem("mode", this.EmulationMode);
+    window.location.reload();
+  },
   TopScore: "0", // Global top score. It's used only in singleplayer mode anyway, so I won't be moving it to the player class
   // Initializing boards for players. Player number is passed as an argument
   InitBoard: (playerCount) => {
@@ -66,10 +70,11 @@ let Game = {
     player.setupBoard();
     Engine.DrawBackground(Game.EmulationMode, player);
     Engine.InitBoard(player.board, BOARD); // Creating game board in the document
+    player.PrepareNextPill();
   },
   //
   Move: (_player, direction) => {
-    if (_player.state != Data.State.movement) return;
+    if (_player.state != Data.State.movement || _player.animation == true) return;
     if (
       (direction == -1 &&
         (_player.pill.l == _player.pill.y * 8 ||
@@ -108,11 +113,11 @@ let Game = {
 
     _player.pill.l += direction;
     _player.pill.r += direction;
-    Engine.Render(_player.board);
+    Engine.Render(_player.board, BOARD);
   },
   // This method rotates player pill
   Rotate: (_player, rotation) => {
-    if (_player.state != Data.State.movement) return; // Rotating only when player can interact with pill
+    if (_player.state != Data.State.movement || _player.animation == true) return; // Rotating only when player can interact with pill
     if (_player.pill.y == 0) return; // !For now - prevent rotation in first row, that cause bug
     let _ro = _player.pill.rotation; // Saving old rotation value, to check if color swap will be needed
     // Modifying values to keep consistent 0*, 90*, 180* and 270* rotation values
@@ -173,11 +178,11 @@ let Game = {
         break;
     }
     if (_fillGap) _player.board[_player.pill.l - 8] = _tmp;
-    Engine.Render(_player.board);
+    Engine.Render(_player.board, BOARD);
   },
   // Dropping pills
   StartShift: (_player) => {
-    if (_player.state == Data.State.shifting) return;
+    if (_player.state != Data.State.movement) return;
     clearInterval(_player.getInterval());
     _player.state = Data.State.shifting;
     // let shiftSpeed = _player.gameSpeed > 100 ? 50 : _player.gameSpeed > 50 ? 25 : 1;
@@ -247,7 +252,7 @@ let Game = {
         board[cell] = Data.Field.empty;
         BOARD.childNodes[cell].removeAttribute("data-pair");
         BOARD.childNodes[cell].classList.add("clear");
-        Engine.Render(board);
+        Engine.Render(board, BOARD);
       });
       _player.incrementScore(viruses);
       Engine.WriteInfo(_player);
@@ -266,8 +271,11 @@ let Game = {
       return true;
     return false;
   },
-  MainLoop: (_player, _speed = _player.getSpeed()) => {
+  MainLoop: function (_player, _speed = _player.getSpeed()) {
     let _interval = setInterval(() => {
+      if (_player.animation) {
+        return;
+      }
       // Checking current game state
       switch (_player.state) {
         case Data.State.shifting:
@@ -313,14 +321,10 @@ let Game = {
             : Data.State.movement;
           setTimeout(() => {
             BOARD.childNodes.forEach((node) => node.classList.remove("clear"));
-            Engine.Render(_player.board);
+            Engine.Render(_player.board, BOARD);
           }, 100);
           if (_player.getVirusCount() == 0) {
-            _player.setVirusLevel(_player.getVirusLevel() + 1);
-            _player.setupBoard();
-            Engine.WriteInfo(_player);
-            if (Game.EmulationMode == Data.EmulationMode.ATARI)
-              Engine.ChangeBackground(_player.getVirusLevel() % 5);
+            _player.state = Data.State.win;
           }
           if (_player.state == Data.State.movement) {
             clearInterval(_player.getInterval());
@@ -371,31 +375,91 @@ let Game = {
           }
           break;
         case Data.State.win:
-          console.log("level clear");
+          let nextLvl = function () {
+            _player.setVirusLevel(_player.getVirusLevel() + 1);
+            _player.setupBoard();
+            Engine.WriteInfo(_player);
+            if (Game.EmulationMode == Data.EmulationMode.ATARI)
+              Engine.ChangeBackground(_player.getVirusLevel() % 5);
+            Game.Controls.Add();
+            setTimeout(() => {
+              Engine.ClearStatus();
+              Game.MainLoop(_player);
+            }, 20);
+            document.removeEventListener("keydown", nextLvl);
+          };
+
+          clearInterval(player.getInterval());
+          this.Controls.Remove();
+          Engine.ShowStatus("win", Game.EmulationMode); // Show win message
+          // Block player on win screen for at least one second
+          setTimeout(() => {
+            document.addEventListener("keydown", nextLvl);
+          }, 1000);
           break;
+
         case Data.State.lose:
-          console.log("U LOST BRO");
+          let _marioWidth = MARIO.style.width;
+          let _marioOffset = MARIO.style.right;
+          //! Reset player score, level and speed. Will be changed when I add main menu
+          let reset = function () {
+            _player.resetSpeed();
+            _player.resetScore();
+            _player.resetPillIndex();
+            _player.setVirusLevel(0);
+
+            // console.warn(_player.getSpeed(), _player.getPillIndex(), _player.getVirusLevel());
+
+            _player.setupBoard();
+            THROW.style.display = "grid";
+            Engine.WriteInfo(_player);
+            if (Game.EmulationMode == Data.EmulationMode.ATARI)
+              Engine.ChangeBackground(_player.getVirusLevel() % 5);
+            Game.Controls.Add();
+            Engine.ClearStatus();
+            MARIO.style.backgroundImage = Engine.Resources.mario.toss[0];
+            MARIO.style.width = _marioWidth;
+            MARIO.style.right = _marioOffset;
+            Game.MainLoop(_player);
+            document.removeEventListener("keydown", reset);
+          };
+
+          this.Controls.Remove();
+          THROW.style.display = "none";
+          MARIO.style.backgroundImage = Engine.Resources.mario.lose;
+          MARIO.style.width = Engine.Resources.mario.widthLoss + "vh";
+          MARIO.style.backgroundSize = `${Engine.Resources.mario.widthLoss}vh ${MARIO.style.height}`;
+          MARIO.style.right = Engine.Resources.mario.offsetLoss + "vh";
           Engine.ShowStatus("lose", Game.EmulationMode);
           if (_player.getScore() > parseInt(Game.TopScore))
             localStorage.setItem("top", _player.getScore());
           clearInterval(player.getInterval());
+
+          setTimeout(() => {
+            document.addEventListener("keydown", reset);
+          }, 1000);
           break;
       }
-      if (_player.state == Data.State.movement && _player.isGrounded) _player.spawnPill();
-      Engine.Render(_player.board);
-      // if (DEBUG) Utility.printBoard(_player.board);
+      if (_player.state == Data.State.movement && _player.isGrounded) {
+        // _player.state = Data.State.animation;
+        // clearInterval(player.getInterval());
+        Engine.ThrowPill(Game.EmulationMode, _player); //_player.spawnPill();
+      }
+      Engine.Render(_player.board, BOARD);
     }, _speed);
 
     _player.setInterval(_interval);
   },
   Game1P: function () {
-    player.spawnPill();
-    Engine.Render(player.board);
+    // player.spawnPill();
+    Engine.Render(player.board, BOARD);
+    player.state = Data.State.animation;
+    Engine.ThrowPill(Game.EmulationMode, player);
     this.MainLoop(player);
     setInterval(Game.CheckFocus, 300);
   },
   CheckFocus: function () {
-    if (!document.hasFocus()) {
+    if (!document.hasFocus() && player.state == Data.State.movement) {
       clearInterval(player.getInterval());
       player.setInterval(null);
       Engine.ShowStatus("pause", Game.EmulationMode);
