@@ -266,16 +266,89 @@ let Engine = {
       }vh;`;
     }
   },
+  //! This code here, officer
   ShowViruses: function (mode) {
     let _virusSize = (mode == Data.EmulationMode.GB ? 2 : 3) * this.GraphicManager.tileSize;
     for (let i = 0; i < 3; i++) {
       //prettier-ignore
       document.getElementById(Data.Colors[i]).style = 
-        `background-image: ${this.Resources.virusFrames[i][0]} 
-        background-size: ${_virusSize}vh ${_virusSize}vh; 
-        height: ${_virusSize}vh; width: ${_virusSize}vh;
-        right: ${this.GraphicManager.tileSize + i*(_virusSize + this.GraphicManager.tileSize/2)}vh; bottom: ${this.GraphicManager.tileSize/2}vh`;
+      `background-image: ${this.Resources.virusFrames[i][0][0]}; 
+      background-size: ${_virusSize}vh ${_virusSize}vh; 
+      height: ${_virusSize}vh; width: ${_virusSize}vh;
+      left: ${this.GraphicManager.tileSize + i*(_virusSize + this.GraphicManager.tileSize/2)}vh; bottom: ${this.GraphicManager.tileSize/2}vh`;
     }
+  },
+  VirusInterval: null,
+  ActiveViruses: [],
+  VirusState: { state: Data.VirusState.dancing, color: [] },
+  Counters: { counter: 0, frame: 0, knockedCounter: 0, angle: 0 },
+  AnimateViruses: function (mode) {
+    this.VirusInterval = setInterval(() => {
+      for (let i = 0; i < 3; i++) {
+        let index = Engine.Counters.counter + i * 6;
+        if (index > Data.VirusFrames[mode].x.length) index -= Data.VirusFrames[mode].x.length;
+        //prettier-ignore
+        let virus = document.getElementById(Data.Colors[i]);
+        if (this.VirusState.state == Data.VirusState.knocked) {
+          this.VirusState.color.forEach((color) => {
+            // console.log(Data.Colors[i], color);
+            virus.style.backgroundImage = this.Resources.virusFrames[i][
+              i == color - 11 ? this.VirusState.state : 0
+            ][Engine.Counters.frame % 2];
+            if (!Engine.ActiveViruses.includes(i) && i != color - 11)
+              virus.style.backgroundImage = "";
+          });
+        } else if (Engine.ActiveViruses.includes(i)) {
+          virus.style.backgroundImage = this.Resources.virusFrames[i][this.VirusState.state][
+            this.VirusState.state == Data.VirusState.dancing
+              ? Engine.Counters.frame
+              : Engine.Counters.frame % 2
+          ];
+        } else {
+          virus.style.backgroundImage = "";
+        }
+        if (
+          Engine.Counters.frame == 0 &&
+          mode == Data.EmulationMode.ATARI &&
+          this.VirusState.state == Data.VirusState.dancing
+        ) {
+          virus.style.left = Data.VirusFrames[mode].x[index] * this.GraphicManager.tileSize + "vh";
+          virus.style.bottom =
+            Data.VirusFrames[mode].y[index] * this.GraphicManager.tileSize + "vh";
+        } else if (
+          // Engine.Counters.frame % 2 == 0 &&
+          mode == Data.EmulationMode.NES &&
+          this.VirusState.state == Data.VirusState.dancing
+        ) {
+          // console.log(Data.VirusFrames[mode]);
+          console.log(Engine.Counters.angle, Math.sin((Engine.Counters.angle * Math.PI) / 180));
+          virus.style.left = Data.VirusFrames[mode].x[0] + i;
+          8 * Math.cos((Engine.Counters.angle * Math.PI) / 180) + "vh";
+          virus.style.bottom =
+            Data.VirusFrames[mode].y[0] +
+            i +
+            8 * Math.sin((Engine.Counters.angle * Math.PI) / 180) +
+            "vh";
+          console.log(virus.style.left, virus.style.bottom);
+        } else if (Data.EmulationMode.GB) {
+          virus.style.left = Data.VirusFrames[mode].x[i] * this.GraphicManager.tileSize + "vh";
+          virus.style.bottom = Data.VirusFrames[mode].y[i] * this.GraphicManager.tileSize + "vh";
+        }
+      }
+      Engine.Counters.frame++;
+      if (Engine.Counters.counter == Data.VirusFrames[mode].x.length) Engine.Counters.counter = 0;
+      if (Engine.Counters.frame > 3) Engine.Counters.frame = 0;
+      if (this.VirusState.state == Data.VirusState.knocked && Engine.Counters.frame == 0)
+        Engine.Counters.knockedCounter++;
+      if (Engine.Counters.frame == 0 && this.VirusState.state == Data.VirusState.dancing)
+        Engine.Counters.counter++;
+      if (Engine.Counters.frame % 2 == 0 && this.VirusState.state == Data.VirusState.dancing)
+        Engine.Counters.angle++;
+      if (Engine.Counters.knockedCounter >= 3) {
+        Engine.Counters.knockedCounter = 0;
+        this.VirusState = { state: Data.VirusState.dancing, color: [] };
+      }
+    }, 375);
   },
   ClearStatus: function () {
     STATUS.style.display = "none";
@@ -500,7 +573,9 @@ let Engine = {
     SWITCH.style = `background-image: ${this.Resources.icon}; width: ${2 * tileSize}vh; 
       height: ${2 * tileSize}vh; top: 0; left: 0; position: fixed;`;
 
-    Engine.WriteInfo(_player);
+    this.WriteInfo(_player);
+    this.ShowViruses(mode);
+    if (this.VirusInterval == null) this.AnimateViruses(mode);
   },
   Render: (board, parent, board_width = 8) => {
     let _class;

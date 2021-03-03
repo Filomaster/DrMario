@@ -206,9 +206,13 @@ let Game = {
   ClearPills: (board, _player) => {
     // Pushing values to indexesToClear, wrapped in function to not repeat code
     let viruses = 0;
+    let virusesColor = [];
     let PushCells = (cells) => {
       cells.forEach((cell) => {
-        if (cell.value > 10) viruses += 1;
+        if (cell.value > 10) {
+          viruses += 1;
+          virusesColor.push(cell.value);
+        }
         indexesToClear.push(cell.index);
       });
     };
@@ -254,7 +258,13 @@ let Game = {
         BOARD.childNodes[cell].classList.add("clear");
         Engine.Render(board, BOARD);
       });
-      _player.incrementScore(viruses);
+      if (viruses > 0) {
+        _player.incrementScore(viruses);
+        virusesColor.filter(Utility.getUnique).forEach((color) => {
+          Engine.VirusState.color.push(color);
+        });
+        Engine.VirusState.state = Data.VirusState.knocked;
+      }
       Engine.WriteInfo(_player);
       return true;
     }
@@ -273,6 +283,11 @@ let Game = {
   },
   MainLoop: function (_player, _speed = _player.getSpeed()) {
     let _interval = setInterval(() => {
+      let activeViruses = [];
+      _player.board.filter(Utility.getUnique).forEach((value) => {
+        if (value > 10) activeViruses.push(value - 11);
+      });
+      Engine.ActiveViruses = activeViruses;
       if (_player.animation) {
         return;
       }
@@ -384,12 +399,14 @@ let Game = {
             Game.Controls.Add();
             setTimeout(() => {
               Engine.ClearStatus();
+              Engine.VirusState = { state: Data.VirusState.dancing, color: [] };
+              Engine.Counters = { frame: 0, counter: 0, knockedCounter: 0 };
               Game.MainLoop(_player);
             }, 20);
             document.removeEventListener("keydown", nextLvl);
           };
 
-          clearInterval(player.getInterval());
+          clearInterval(_player.getInterval());
           this.Controls.Remove();
           Engine.ShowStatus("win", Game.EmulationMode); // Show win message
           // Block player on win screen for at least one second
@@ -401,6 +418,8 @@ let Game = {
         case Data.State.lose:
           let _marioWidth = MARIO.style.width;
           let _marioOffset = MARIO.style.right;
+          Engine.VirusState.state = Data.VirusState.laughing;
+
           //! Reset player score, level and speed. Will be changed when I add main menu
           let reset = function () {
             _player.resetSpeed();
@@ -420,6 +439,8 @@ let Game = {
             MARIO.style.backgroundImage = Engine.Resources.mario.toss[0];
             MARIO.style.width = _marioWidth;
             MARIO.style.right = _marioOffset;
+            Engine.VirusState = { state: Data.VirusState.dancing, color: [] };
+            Engine.Counters = { frame: 0, counter: 0, knockedCounter: 0 };
             Game.MainLoop(_player);
             document.removeEventListener("keydown", reset);
           };
