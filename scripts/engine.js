@@ -281,7 +281,7 @@ let Engine = {
   VirusInterval: null,
   ActiveViruses: [],
   VirusState: { state: Data.VirusState.dancing, color: [] },
-  Counters: { counter: 0, frame: 0, knockedCounter: 0, angle: 0 },
+  Counters: { counter: 0, frame: 0, knockedCounter: 0, angle: [0, 120, 240] },
   AnimateViruses: function (mode) {
     this.VirusInterval = setInterval(() => {
       for (let i = 0; i < 3; i++) {
@@ -320,17 +320,19 @@ let Engine = {
           mode == Data.EmulationMode.NES &&
           this.VirusState.state == Data.VirusState.dancing
         ) {
-          // console.log(Data.VirusFrames[mode]);
-          console.log(Engine.Counters.angle, Math.sin((Engine.Counters.angle * Math.PI) / 180));
-          virus.style.left = Data.VirusFrames[mode].x[0] + i;
-          8 * Math.cos((Engine.Counters.angle * Math.PI) / 180) + "vh";
-          virus.style.bottom =
-            Data.VirusFrames[mode].y[0] +
-            i +
-            8 * Math.sin((Engine.Counters.angle * Math.PI) / 180) +
+          virus.style.left =
+            // Data.VirusFrames[mode].x[i] * Engine.GraphicManager.tileSize +
+            Data.VirusFrames[mode].x[0] * Engine.GraphicManager.tileSize +
+            8 * Math.cos((Engine.Counters.angle[i] * Math.PI) / 180) +
+            // Data.VirusFrames[mode].x[i];
             "vh";
-          console.log(virus.style.left, virus.style.bottom);
-        } else if (Data.EmulationMode.GB) {
+          virus.style.bottom =
+            // Data.VirusFrames[mode].y[i] * Engine.GraphicManager.tileSize +
+            Data.VirusFrames[mode].y[0] * Engine.GraphicManager.tileSize +
+            8 * Math.sin((Engine.Counters.angle[i] * Math.PI) / 180) +
+            // Data.VirusFrames[mode].y[i];
+            "vh";
+        } else if (mode == Data.EmulationMode.GB) {
           virus.style.left = Data.VirusFrames[mode].x[i] * this.GraphicManager.tileSize + "vh";
           virus.style.bottom = Data.VirusFrames[mode].y[i] * this.GraphicManager.tileSize + "vh";
         }
@@ -342,8 +344,13 @@ let Engine = {
         Engine.Counters.knockedCounter++;
       if (Engine.Counters.frame == 0 && this.VirusState.state == Data.VirusState.dancing)
         Engine.Counters.counter++;
-      if (Engine.Counters.frame % 2 == 0 && this.VirusState.state == Data.VirusState.dancing)
-        Engine.Counters.angle++;
+      if (Engine.Counters.frame % 2 == 0 && this.VirusState.state == Data.VirusState.dancing) {
+        for (let i = 0; i < 3; i++) {
+          Engine.Counters.angle[i] += 10;
+          if (Engine.Counters.angle[i] >= 360) Engine.Counters.angle[i] = 0;
+        }
+      }
+
       if (Engine.Counters.knockedCounter >= 3) {
         Engine.Counters.knockedCounter = 0;
         this.VirusState = { state: Data.VirusState.dancing, color: [] };
