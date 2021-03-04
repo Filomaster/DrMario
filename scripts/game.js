@@ -399,8 +399,11 @@ let Game = {
             Game.Controls.Add();
             setTimeout(() => {
               Engine.ClearStatus();
-              Engine.VirusState = { state: Data.VirusState.dancing, color: [] };
-              Engine.Counters = { frame: 0, counter: 0, knockedCounter: 0 };
+              Engine.VirusState = {
+                state: Data.VirusState.dancing,
+                color: [],
+              };
+              Engine.Counters = { frame: 0, counter: 0, knockedCounter: 0, angle: [0, 120, 240] };
               Game.MainLoop(_player);
             }, 20);
             document.removeEventListener("keydown", nextLvl);
@@ -418,6 +421,7 @@ let Game = {
         case Data.State.lose:
           let _marioWidth = MARIO.style.width;
           let _marioOffset = MARIO.style.right;
+          console.log(_marioWidth, _marioOffset);
           Engine.VirusState.state = Data.VirusState.laughing;
 
           //! Reset player score, level and speed. Will be changed when I add main menu
@@ -439,8 +443,9 @@ let Game = {
             MARIO.style.backgroundImage = Engine.Resources.mario.toss[0];
             MARIO.style.width = _marioWidth;
             MARIO.style.right = _marioOffset;
+            (MARIO.style.backgroundSize = _marioWidth), MARIO.style.height;
             Engine.VirusState = { state: Data.VirusState.dancing, color: [] };
-            Engine.Counters = { frame: 0, counter: 0, knockedCounter: 0 };
+            Engine.Counters = { frame: 0, counter: 0, knockedCounter: 0, angle: [0, 120, 240] };
             Game.MainLoop(_player);
             document.removeEventListener("keydown", reset);
           };
